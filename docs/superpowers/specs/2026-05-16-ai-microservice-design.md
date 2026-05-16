@@ -41,8 +41,10 @@ integration; applying backend changes; Flyway migrations (backend owns schema).
 ## 3. Locked-decision overrides (recorded deliberately)
 
 These deviate from `.agents/memory/decisions.md` by explicit product-owner
-decision on 2026-05-16. They will also be recorded in `decisions.md` so the
-rest of the project stays consistent.
+decision on 2026-05-16. The override is recorded **inside `ai/` only** (this
+spec is the system of record for it). Editing `.agents/memory/decisions.md`
+is **not done here** (it is outside `ai/`); the backend suggestion doc will
+*recommend* that edit for the owner to apply.
 
 | # | Original locked decision | New direction |
 |---|--------------------------|---------------|
@@ -262,6 +264,9 @@ backend owner to review and permit. Will cover:
 - **Hard dependency:** backend must add the catalog Flyway migration
   (Group B: `stores`, `catalog_products`) before recommendations works
   against the real DB.
+- **Recommended `.agents/memory/decisions.md` edit** (not applied by this
+  effort, kept outside `ai/`): record the §3 overrides so the rest of the
+  project stays consistent.
 
 ## 12. Risks & mitigations
 
@@ -278,5 +283,6 @@ backend owner to review and permit. Will cover:
 Endpoints implemented + guarded; recommendations & bank work against mocked
 Ollama and a test DB; privacy test passes; pytest green from
 `ai/ai-microservie/`; Docker image builds with `llama3` baked in; backend
-suggestion doc written; `.agents/memory/decisions.md` updated to record the
-overrides. No secrets committed. Backend untouched (suggestions only).
+suggestion doc written; §3 override recorded inside `ai/` (this spec) and the
+`.agents/memory/decisions.md` edit *recommended* (not applied — outside
+`ai/`). No secrets committed. Backend untouched (suggestions only).
