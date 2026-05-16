@@ -35,3 +35,27 @@ async def test_non_json_output_raises_unavailable():
     c = OllamaClient("http://x", "llama3", 5.0, transport=_transport(handler))
     with pytest.raises(OllamaUnavailable):
         await c.generate_json("hi")
+
+
+@pytest.mark.asyncio
+async def test_http_status_error_raises_unavailable():
+    def handler(request):
+        return httpx.Response(503, json={"error": "overloaded"})
+
+    c = OllamaClient("http://x", "llama3", 5.0, transport=_transport(handler))
+    with pytest.raises(OllamaUnavailable):
+        await c.generate_json("hi")
+
+
+@pytest.mark.asyncio
+async def test_2xx_non_json_body_raises_unavailable():
+    def handler(request):
+        return httpx.Response(
+            200,
+            content=b"not json at all",
+            headers={"content-type": "application/json"},
+        )
+
+    c = OllamaClient("http://x", "llama3", 5.0, transport=_transport(handler))
+    with pytest.raises(OllamaUnavailable):
+        await c.generate_json("hi")

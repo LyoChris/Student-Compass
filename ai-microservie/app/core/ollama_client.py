@@ -39,8 +39,9 @@ class OllamaClient:
         except httpx.HTTPError as exc:
             raise OllamaUnavailable(str(exc)) from exc
 
-        raw = resp.json().get("response", "")
         try:
+            body = resp.json()
+            raw = body.get("response", "") if isinstance(body, dict) else ""
             parsed = json.loads(raw)
         except (json.JSONDecodeError, TypeError) as exc:
             raise OllamaUnavailable(f"non-JSON model output: {exc}") from exc
