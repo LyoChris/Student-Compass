@@ -14,7 +14,7 @@ async def require_internal_secret(
     """
     expected = settings.ai_service_shared_secret
     if not x_internal_secret or not secrets.compare_digest(
-        x_internal_secret, expected
+        x_internal_secret.encode("utf-8"), expected.encode("utf-8")
     ):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

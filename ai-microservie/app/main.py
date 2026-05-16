@@ -8,7 +8,7 @@ _guard_probe = APIRouter(
 )
 
 
-@_guard_probe.get("/_guard_probe")
+@_guard_probe.get("/_guard_probe", include_in_schema=False)
 def _guard_probe_route() -> dict:
     return {"ok": True}
 

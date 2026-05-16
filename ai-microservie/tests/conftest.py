@@ -14,4 +14,6 @@ def client(app):
     return TestClient(app)
 
 
-SECRET_HEADER = {"X-Internal-Secret": "dev-internal-secret"}
+from app.core.config import settings
+
+SECRET_HEADER = {"X-Internal-Secret": settings.ai_service_shared_secret}

@@ -16,3 +16,14 @@ def test_guarded_route_requires_secret(client):
 def test_guarded_route_accepts_correct_secret(client):
     resp = client.get("/api/v1/_guard_probe", headers=SECRET_HEADER)
     assert resp.status_code == 200
+
+
+def test_non_ascii_secret_header_is_401_not_500(client):
+    # httpx rejects non-ASCII str header values before they reach the app;
+    # pass the value as raw bytes (latin-1 encoded, as HTTP/1.1 allows) so
+    # the header actually reaches the security guard and we can assert 401.
+    resp = client.get(
+        "/api/v1/_guard_probe",
+        headers={"X-Internal-Secret": "ÿbad".encode("latin-1")},
+    )
+    assert resp.status_code == 401
