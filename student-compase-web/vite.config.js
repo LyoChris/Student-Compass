@@ -71,7 +71,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:8067',
+        target: 'https://student-compass-e98c.onrender.com',
         changeOrigin: true,
       },
     },
