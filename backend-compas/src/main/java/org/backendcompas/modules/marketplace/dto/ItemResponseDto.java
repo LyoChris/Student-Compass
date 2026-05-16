@@ -30,6 +30,9 @@ public class ItemResponseDto {
     @Schema(description = "UUID of the student seller that owns this listing.", example = "0fcb4ce8-9a62-4f4f-8a28-76c5c5e8d4e3", requiredMode = Schema.RequiredMode.REQUIRED)
     private UUID sellerId;
 
+    @Schema(description = "Contact phone number shown to interested students.", example = "+40722123456", requiredMode = Schema.RequiredMode.REQUIRED)
+    private String contactPhone;
+
     @Schema(description = "Title shown in the marketplace feed.", example = "Graphing Calculator TI-84 Plus", requiredMode = Schema.RequiredMode.REQUIRED)
     private String title;
 

@@ -10,7 +10,8 @@ import org.backendcompas.modules.marketplace.model.ItemCondition;
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.PositiveOrZero;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -44,8 +45,8 @@ public class CreateItemRequestDto {
     private String description;
 
     @NotNull
-    @Positive
-    @Schema(description = "Listing price in RON. Must be greater than zero.", example = "35.00", requiredMode = Schema.RequiredMode.REQUIRED)
+    @PositiveOrZero
+    @Schema(description = "Listing price in RON. Must be zero or higher.", example = "35.00", requiredMode = Schema.RequiredMode.REQUIRED)
     private BigDecimal price;
 
     @NotNull
@@ -55,6 +56,15 @@ public class CreateItemRequestDto {
     @NotNull
     @Schema(description = "Strict item condition enum.", example = "GOOD", allowableValues = {"NEW", "LIKE_NEW", "GOOD", "FAIR"}, requiredMode = Schema.RequiredMode.REQUIRED)
     private ItemCondition itemCondition;
+
+    @Size(max = 20)
+    @Pattern(regexp = "^$|\\+?[0-9]{10,15}$", message = "Contact phone must contain 10 to 15 digits and may start with +")
+    @Schema(
+        description = "Optional contact phone. If omitted, the seller's account phone number is used.",
+        example = "+40722123456",
+        requiredMode = Schema.RequiredMode.NOT_REQUIRED
+    )
+    private String contactPhone;
 
     @Size(max = 10)
     @Schema(description = "Optional tags used for discoverability. Keep tags short and student-friendly.", example = "[\"math\", \"year-1\", \"exam-prep\"]", maxLength = 10)

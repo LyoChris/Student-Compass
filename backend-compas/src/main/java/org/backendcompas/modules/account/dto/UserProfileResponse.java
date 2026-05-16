@@ -16,6 +16,12 @@ public record UserProfileResponse(
         @Schema(description = "Last name", example = "Popescu")
         String lastName,
 
+        @Schema(description = "Student age", example = "20")
+        Integer age,
+
+        @Schema(description = "Primary contact phone number", example = "+40722123456")
+        String phoneNumber,
+
         @Schema(description = "Email address", example = "ana.popescu@student-compass.ro")
         String email,
 
@@ -42,6 +48,8 @@ public record UserProfileResponse(
                 user.getId(),
                 user.getFirstName(),
                 user.getLastName(),
+            user.getAge(),
+            user.getPhoneNumber(),
                 user.getEmail(),
                 user.getRole().name(),
                 user.getStatus().name(),

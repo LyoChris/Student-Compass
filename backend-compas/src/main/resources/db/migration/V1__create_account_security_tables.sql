@@ -17,6 +17,8 @@ CREATE TABLE users (
     password_hash VARCHAR(255) NOT NULL,
     first_name VARCHAR(120) NOT NULL,
     last_name VARCHAR(120) NOT NULL,
+    age INTEGER NOT NULL,
+    phone_number VARCHAR(20) NOT NULL,
     role VARCHAR(40) NOT NULL,
     status VARCHAR(40) NOT NULL,
     city_id UUID NOT NULL,
@@ -26,7 +28,11 @@ CREATE TABLE users (
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     CONSTRAINT fk_users_city FOREIGN KEY (city_id) REFERENCES cities (id),
-    CONSTRAINT fk_users_faculty FOREIGN KEY (faculty_id) REFERENCES faculties (id)
+    CONSTRAINT fk_users_faculty FOREIGN KEY (faculty_id) REFERENCES faculties (id),
+    CONSTRAINT chk_users_age_min
+        CHECK (age >= 18),
+    CONSTRAINT chk_users_phone_not_blank
+        CHECK (length(btrim(phone_number)) > 0)
 );
 
 CREATE INDEX idx_users_role ON users (role);

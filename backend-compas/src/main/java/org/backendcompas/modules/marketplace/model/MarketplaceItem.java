@@ -55,6 +55,10 @@ public class MarketplaceItem {
     @Schema(description = "UUID of the student seller that owns this listing.", example = "0fcb4ce8-9a62-4f4f-8a28-76c5c5e8d4e3")
     private UUID sellerId;
 
+    @Column(name = "contact_phone", nullable = false, length = 20)
+    @Schema(description = "Contact phone number shown to interested students.", example = "+40722123456")
+    private String contactPhone;
+
     @Column(nullable = false, length = 100)
     @Schema(description = "Short title shown in the marketplace feed.", example = "Math 1 Course Notes")
     private String title;

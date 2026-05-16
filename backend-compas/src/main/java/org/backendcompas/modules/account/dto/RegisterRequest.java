@@ -2,8 +2,10 @@ package org.backendcompas.modules.account.dto;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 
 import java.util.UUID;
@@ -17,6 +19,17 @@ public record RegisterRequest(
         @Schema(description = "Last name of the student", example = "Popescu")
         @NotBlank(message = "Last name is required")
         String lastName,
+
+        @Schema(description = "Student age — must be at least 18", example = "20")
+        @NotNull(message = "Age is required")
+        @Min(value = 18, message = "Must be at least 18")
+        Integer age,
+
+        @Schema(description = "Primary contact phone number", example = "+40722123456")
+        @NotBlank(message = "Phone number is required")
+        @Size(max = 20, message = "Phone number must be at most 20 characters")
+        @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Phone number must contain 10 to 15 digits and may start with +")
+        String phoneNumber,
 
         @Schema(description = "Email address — must be unique across all accounts", example = "ana.popescu@student-compass.ro")
         @Email(message = "Email must be valid")

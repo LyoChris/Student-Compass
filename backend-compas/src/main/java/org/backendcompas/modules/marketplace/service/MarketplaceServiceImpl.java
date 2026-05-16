@@ -9,6 +9,8 @@ import java.util.stream.Collectors;
 
 import org.backendcompas.core.exception.BadRequestException;
 import org.backendcompas.core.exception.NotFoundException;
+import org.backendcompas.modules.account.model.User;
+import org.backendcompas.modules.account.repository.UserRepository;
 import org.backendcompas.modules.marketplace.dto.CreateItemRequestDto;
 import org.backendcompas.modules.marketplace.dto.ItemResponseDto;
 import org.backendcompas.modules.marketplace.dto.PagedMarketplaceResponse;
@@ -47,11 +49,14 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     );
 
     private final MarketplaceItemRepository marketplaceItemRepository;
+    private final UserRepository userRepository;
 
     @Override
     public ItemResponseDto createItem(CreateItemRequestDto request) {
+        String contactPhone = resolveContactPhone(request);
         MarketplaceItem item = MarketplaceItem.builder()
             .sellerId(request.getSellerId())
+            .contactPhone(contactPhone)
             .title(request.getTitle().trim())
             .description(request.getDescription().trim())
             .price(request.getPrice())
@@ -200,6 +205,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
         return ItemResponseDto.builder()
             .id(item.getId())
             .sellerId(item.getSellerId())
+            .contactPhone(item.getContactPhone())
             .title(item.getTitle())
             .description(item.getDescription())
             .price(item.getPrice())
@@ -212,6 +218,26 @@ public class MarketplaceServiceImpl implements MarketplaceService {
             .createdAt(item.getCreatedAt())
             .updatedAt(item.getUpdatedAt())
             .build();
+    }
+
+    private String resolveContactPhone(CreateItemRequestDto request) {
+        String requestedPhone = normalizePhone(request.getContactPhone());
+        if (requestedPhone != null) {
+            return requestedPhone;
+        }
+
+        User seller = userRepository.findById(request.getSellerId())
+            .orElseThrow(() -> new NotFoundException("Seller not found"));
+
+        return seller.getPhoneNumber();
+    }
+
+    private String normalizePhone(String phone) {
+        if (phone == null) {
+            return null;
+        }
+        String trimmed = phone.trim();
+        return trimmed.isBlank() ? null : trimmed;
     }
 
     private List<String> safeList(List<String> values) {

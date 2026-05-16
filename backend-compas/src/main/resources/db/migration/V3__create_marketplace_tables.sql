@@ -1,6 +1,7 @@
 CREATE TABLE marketplace_items (
     id UUID PRIMARY KEY,
     seller_id UUID NOT NULL,
+    contact_phone VARCHAR(20) NOT NULL,
     title VARCHAR(100) NOT NULL,
     description VARCHAR(2000) NOT NULL,
     price DECIMAL(12, 2) NOT NULL,
@@ -15,8 +16,10 @@ CREATE TABLE marketplace_items (
         CHECK (length(btrim(title)) > 0),
     CONSTRAINT chk_marketplace_description_not_blank
         CHECK (length(btrim(description)) > 0),
+    CONSTRAINT chk_marketplace_contact_phone_not_blank
+        CHECK (length(btrim(contact_phone)) > 0),
     CONSTRAINT chk_marketplace_price_positive
-        CHECK (price > 0),
+        CHECK (price >= 0),
     CONSTRAINT chk_marketplace_category_enum
         CHECK (category IN ('BOOKS_NOTES', 'ELECTRONICS', 'DORM_APPLIANCES', 'CLOTHING', 'OTHER')),
     CONSTRAINT chk_marketplace_condition_enum

@@ -37,6 +37,12 @@ public class User {
     @Column(name = "last_name", nullable = false)
     private String lastName;
 
+    @Column(nullable = false)
+    private Integer age;
+
+    @Column(name = "phone_number", nullable = false, length = 20)
+    private String phoneNumber;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private UserRole role;
@@ -87,6 +93,10 @@ public class User {
     public void setFirstName(String firstName) { this.firstName = firstName; }
     public String getLastName() { return lastName; }
     public void setLastName(String lastName) { this.lastName = lastName; }
+    public Integer getAge() { return age; }
+    public void setAge(Integer age) { this.age = age; }
+    public String getPhoneNumber() { return phoneNumber; }
+    public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
     public UserRole getRole() { return role; }
     public void setRole(UserRole role) { this.role = role; }
     public UserStatus getStatus() { return status; }
