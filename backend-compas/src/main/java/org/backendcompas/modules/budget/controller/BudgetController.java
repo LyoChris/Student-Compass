@@ -20,6 +20,7 @@ import org.backendcompas.modules.budget.dto.CategoryAdjustDto;
 import org.backendcompas.modules.budget.dto.ManualTransactionRequestDto;
 import org.backendcompas.modules.budget.dto.MonthlyBudgetResponseDto;
 import org.backendcompas.modules.budget.dto.ParsedTransactionDto;
+import org.backendcompas.modules.budget.dto.SpendTodayResponseDto;
 import org.backendcompas.modules.budget.service.BudgetService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -209,6 +210,77 @@ public class BudgetController {
         }
 
         return ResponseEntity.ok(budgetService.getOrCreateBudget(userDetails.getUserId(), m, y));
+    }
+
+    // =========================================================================
+    // GET /spend-today
+    // =========================================================================
+
+    @Operation(
+            summary = "How much have I spent today?",
+            description = """
+                    Returns a real-time summary of everything the authenticated student has spent
+                    during the current calendar day (from midnight to now).
+
+                    Includes:
+                    - `totalToday` — grand total across all categories
+                    - `byCategory` — per-category breakdown, sorted by amount descending
+                    - `transactions` — individual entries, newest first
+
+                    Transactions from all budgets belonging to the user are included — the
+                    response is not scoped to a specific month's budget.
+
+                    Returns an empty summary (totalToday = 0.00, empty lists) when no
+                    transactions have been logged yet today.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(
+                    responseCode = "200",
+                    description = "Today's spend summary returned successfully.",
+                    content = @Content(
+                            mediaType = MediaType.APPLICATION_JSON_VALUE,
+                            schema = @Schema(implementation = SpendTodayResponseDto.class),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "Mid-day with two categories",
+                                            value = """
+                                                    {
+                                                      "date": "2026-05-17",
+                                                      "totalToday": 143.80,
+                                                      "byCategory": [
+                                                        { "categoryName": "FOOD",      "amount": 94.30 },
+                                                        { "categoryName": "TRANSPORT", "amount": 49.50 }
+                                                      ],
+                                                      "transactions": [
+                                                        { "categoryName": "TRANSPORT", "amount": 49.50, "description": "Uber to faculty",          "transactionDate": "2026-05-17T11:02:14" },
+                                                        { "categoryName": "FOOD",      "amount": 94.30, "description": "Kaufland — weekly groceries","transactionDate": "2026-05-17T09:14:32" }
+                                                      ]
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "Nothing spent yet today",
+                                            value = """
+                                                    {
+                                                      "date": "2026-05-17",
+                                                      "totalToday": 0.00,
+                                                      "byCategory": [],
+                                                      "transactions": []
+                                                    }
+                                                    """
+                                    )
+                            }
+                    )
+            ),
+            @ApiResponse(responseCode = "401", description = "No valid Bearer token provided.",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class)))
+    })
+    @GetMapping("/spend-today")
+    public ResponseEntity<SpendTodayResponseDto> getSpendToday(
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(budgetService.getSpendToday(userDetails.getUserId()));
     }
 
     // =========================================================================

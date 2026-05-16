@@ -4,6 +4,7 @@ import org.backendcompas.modules.budget.dto.CategoryAdjustDto;
 import org.backendcompas.modules.budget.dto.ManualTransactionRequestDto;
 import org.backendcompas.modules.budget.dto.MonthlyBudgetResponseDto;
 import org.backendcompas.modules.budget.dto.ParsedTransactionDto;
+import org.backendcompas.modules.budget.dto.SpendTodayResponseDto;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.List;
@@ -48,4 +49,10 @@ public interface BudgetService {
      * Throws ForbiddenException if userId != budget owner.
      */
     List<ParsedTransactionDto> parseBankStatement(UUID userId, UUID budgetId, MultipartFile file);
+
+    /**
+     * Returns a summary of all transactions the user logged today (midnight → now):
+     * total amount, per-category breakdown, and the individual entries newest-first.
+     */
+    SpendTodayResponseDto getSpendToday(UUID userId);
 }

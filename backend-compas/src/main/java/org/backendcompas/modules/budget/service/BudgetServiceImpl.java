@@ -9,12 +9,14 @@ import org.backendcompas.modules.budget.dto.CategoryAdjustDto;
 import org.backendcompas.modules.budget.dto.ManualTransactionRequestDto;
 import org.backendcompas.modules.budget.dto.MonthlyBudgetResponseDto;
 import org.backendcompas.modules.budget.dto.ParsedTransactionDto;
+import org.backendcompas.modules.budget.dto.SpendTodayResponseDto;
 import org.backendcompas.modules.budget.model.BudgetCategory;
 import org.backendcompas.modules.budget.model.MonthlyBudget;
 import org.backendcompas.modules.budget.model.Transaction;
 import org.backendcompas.modules.budget.repository.BudgetCategoryRepository;
 import org.backendcompas.modules.budget.repository.MonthlyBudgetRepository;
 import org.backendcompas.modules.budget.repository.TransactionRepository;
+import org.backendcompas.modules.profile.model.FixedExpense;
 import org.backendcompas.modules.profile.model.StudentProfile;
 import org.backendcompas.modules.profile.repository.StudentProfileRepository;
 import org.springframework.stereotype.Service;
@@ -343,6 +345,48 @@ public class BudgetServiceImpl implements BudgetService {
     }
 
     // =========================================================================
+    // getSpendToday
+    // =========================================================================
+
+    @Override
+    @Transactional(readOnly = true)
+    public SpendTodayResponseDto getSpendToday(UUID userId) {
+        LocalDate today = LocalDate.now();
+        LocalDateTime from = today.atStartOfDay();
+        LocalDateTime to   = today.plusDays(1).atStartOfDay();
+
+        List<Transaction> txs = transactionRepository
+                .findByUserIdAndTransactionDateBetweenOrderByTransactionDateDesc(userId, from, to);
+
+        BigDecimal total = txs.stream()
+                .map(Transaction::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // per-category aggregation
+        Map<String, BigDecimal> catMap = new LinkedHashMap<>();
+        for (Transaction tx : txs) {
+            String name = tx.getCategory().getName();
+            catMap.merge(name, tx.getAmount(), BigDecimal::add);
+        }
+
+        List<SpendTodayResponseDto.CategorySpendDto> byCategory = catMap.entrySet().stream()
+                .sorted(Map.Entry.<String, BigDecimal>comparingByValue().reversed())
+                .map(e -> new SpendTodayResponseDto.CategorySpendDto(e.getKey(), e.getValue()))
+                .toList();
+
+        List<SpendTodayResponseDto.TransactionItemDto> items = txs.stream()
+                .map(tx -> new SpendTodayResponseDto.TransactionItemDto(
+                        tx.getCategory().getName(),
+                        tx.getAmount(),
+                        tx.getDescription(),
+                        tx.getTransactionDate().toString()
+                ))
+                .toList();
+
+        return new SpendTodayResponseDto(today, total, byCategory, items);
+    }
+
+    // =========================================================================
     // Private helpers
     // =========================================================================
 
@@ -382,7 +426,14 @@ public class BudgetServiceImpl implements BudgetService {
                 .add(budget.getRolloverAmount())
                 .max(BigDecimal.ZERO);
 
-        BigDecimal s2s = calcSafeToSpend(totalRemaining, budget.getMonth(), budget.getYear());
+        BigDecimal fixedTotal = getFixedTotal(budget.getUserId());
+        BigDecimal s2s = calcSafeToSpend(
+                budget.getTotalIncome(),
+                fixedTotal,
+                totalSpent,
+                budget.getMonth(),
+                budget.getYear()
+        );
 
         return new MonthlyBudgetResponseDto(
                 budget.getId(),
@@ -400,9 +451,28 @@ public class BudgetServiceImpl implements BudgetService {
         );
     }
 
-    private BigDecimal calcSafeToSpend(BigDecimal totalRemaining, int month, int year) {
-        if (totalRemaining.signum() <= 0) {
-            return BigDecimal.ZERO;
+    private BigDecimal getFixedTotal(UUID userId) {
+        return profileRepository.findById(userId)
+                .map(StudentProfile::getFixedExpenses)
+                .stream()
+                .flatMap(List::stream)
+                .map(FixedExpense::getAmount)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+
+    private BigDecimal calcSafeToSpend(
+            BigDecimal monthlyBudget,
+            BigDecimal fixedTotal,
+            BigDecimal totalSpent,
+            int month,
+            int year
+    ) {
+        BigDecimal remainingDisposable = monthlyBudget
+                .subtract(fixedTotal)
+                .subtract(totalSpent);
+
+        if (remainingDisposable.signum() <= 0) {
+            return BigDecimal.ZERO.setScale(2, RoundingMode.HALF_UP);
         }
 
         LocalDate today = LocalDate.now();
@@ -412,14 +482,17 @@ public class BudgetServiceImpl implements BudgetService {
         int remainingDays;
         YearMonth currentYM = YearMonth.from(today);
         if (ym.equals(currentYM)) {
-            remainingDays = Math.max(1, daysInMonth - today.getDayOfMonth() + 1);
+            remainingDays = daysInMonth - today.getDayOfMonth();
+            if (remainingDays == 0) {
+                remainingDays = 1;
+            }
         } else if (ym.isAfter(currentYM)) {
             remainingDays = daysInMonth;
         } else {
             remainingDays = 1; // past month — budget is effectively closed
         }
 
-        return totalRemaining.divide(BigDecimal.valueOf(remainingDays), 2, RoundingMode.HALF_UP);
+        return remainingDisposable.divide(BigDecimal.valueOf(remainingDays), 2, RoundingMode.HALF_UP);
     }
 
     private List<BudgetCategory> buildDefaultCategories(MonthlyBudget budget, BigDecimal income) {
