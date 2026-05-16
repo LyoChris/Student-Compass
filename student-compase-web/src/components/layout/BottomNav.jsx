@@ -1,11 +1,12 @@
-import { Home, MessageSquare, ShoppingBag, MapPin } from 'lucide-react'
+import { Home, MessageSquare, ShoppingBag, MapPin, User } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
 const NAV_ITEMS = [
-  { to: '/dashboard', icon: Home,          label: 'Home'   },
-  { to: '/chat',      icon: MessageSquare, label: 'Chat'   },
-  { to: '/market',    icon: ShoppingBag,   label: 'Market' },
-  { to: '/radar',     icon: MapPin,        label: 'Radar'  },
+  { to: '/dashboard', icon: Home,          label: 'Home'    },
+  { to: '/chat',      icon: MessageSquare, label: 'Chat'    },
+  { to: '/market',    icon: ShoppingBag,   label: 'Market'  },
+  { to: '/radar',     icon: MapPin,        label: 'Radar'   },
+  { to: '/profile',   icon: User,          label: 'Profile' },
 ]
 
 export default function BottomNav() {
@@ -21,7 +22,7 @@ export default function BottomNav() {
               key={to}
               to={to}
               className={({ isActive }) =>
-                `flex flex-col items-center gap-1 px-5 py-1 rounded-2xl font-medium text-xs transition-all ${
+                `flex flex-col items-center gap-1 px-3 py-1 rounded-2xl font-medium text-xs transition-all ${
                   isActive
                     ? 'text-purple-400'
                     : 'text-slate-500 hover:text-slate-300'

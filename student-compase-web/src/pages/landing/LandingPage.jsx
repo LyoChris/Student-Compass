@@ -1,6 +1,6 @@
 import { ArrowRight, Zap, ShoppingBag, MapPin, TrendingUp, Star, Download, Sparkles, Users, BadgeCheck } from 'lucide-react'
 import { Link } from 'react-router-dom'
-import { useInstallPrompt } from '../hooks/useInstallPrompt'
+import { useInstallPrompt } from '../../hooks/useInstallPrompt'
 
 const BENTO_FEATURES = [
   {
@@ -38,18 +38,14 @@ const BENTO_FEATURES = [
 ]
 
 const PARTNERS = [
-  'Universitatea Bucuresti',
-  'Politehnica Bucuresti',
-  'UAIC Iasi',
-  'UBB Cluj-Napoca',
-  'ASE Bucuresti',
-  'UVT Timisoara',
+  'Universitatea Bucuresti', 'Politehnica Bucuresti',
+  'UAIC Iasi', 'UBB Cluj-Napoca', 'ASE Bucuresti', 'UVT Timisoara',
 ]
 
 const STATS = [
-  { value: '10k+', label: 'Students',        Icon: Users        },
-  { value: 'RON',  label: 'Primary Currency', Icon: BadgeCheck   },
-  { value: '4.9',  label: 'App Rating',       Icon: Star         },
+  { value: '10k+', label: 'Students',        Icon: Users      },
+  { value: 'RON',  label: 'Primary Currency', Icon: BadgeCheck },
+  { value: '4.9',  label: 'App Rating',       Icon: Star       },
 ]
 
 export default function LandingPage() {
@@ -57,14 +53,13 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-slate-900 overflow-x-hidden">
-      {/* Background gradient orbs */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-60 -right-60 w-[600px] h-[600px] rounded-full bg-purple-500/8 blur-3xl" />
         <div className="absolute top-1/2 -left-60 w-96 h-96 rounded-full bg-blue-500/8 blur-3xl" />
         <div className="absolute bottom-0 right-1/4 w-80 h-80 rounded-full bg-green-500/6 blur-3xl" />
       </div>
 
-      {/* Top Navigation */}
+      {/* Navigation */}
       <header className="relative z-10 flex items-center justify-between px-6 py-5 max-w-6xl mx-auto">
         <div className="flex items-center gap-2.5">
           <div className="w-9 h-9 rounded-xl bg-purple-500 flex items-center justify-center shadow-lg shadow-purple-500/40">
@@ -72,21 +67,14 @@ export default function LandingPage() {
           </div>
           <span className="text-xl font-black text-slate-100 tracking-tight">StuFi</span>
         </div>
-
         <div className="flex items-center gap-3">
           {canInstall && (
-            <button
-              onClick={promptInstall}
-              className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-500/15 text-purple-400 text-sm font-semibold border border-purple-500/30 hover:bg-purple-500/25"
-            >
+            <button onClick={promptInstall} className="hidden sm:flex items-center gap-2 px-4 py-2 rounded-xl bg-purple-500/15 text-purple-400 text-sm font-semibold border border-purple-500/30 hover:bg-purple-500/25">
               <Download size={15} />
               Install App
             </button>
           )}
-          <Link
-            to="/login"
-            className="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-200 text-sm font-semibold border border-white/10 hover:bg-slate-700"
-          >
+          <Link to="/login" className="px-5 py-2.5 rounded-xl bg-slate-800 text-slate-200 text-sm font-semibold border border-white/10 hover:bg-slate-700">
             Login
           </Link>
         </div>
@@ -94,7 +82,6 @@ export default function LandingPage() {
 
       {/* Hero */}
       <main className="relative z-10 max-w-6xl mx-auto px-6 pt-10 pb-24">
-        {/* Badge */}
         <div className="flex justify-center mb-8">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-purple-500/10 border border-purple-500/25 text-purple-400 text-sm font-semibold">
             <Sparkles size={14} />
@@ -102,19 +89,11 @@ export default function LandingPage() {
           </div>
         </div>
 
-        {/* Headline */}
         <div className="text-center mb-8">
           <h1 className="text-5xl sm:text-7xl font-black text-slate-100 leading-none tracking-tighter">
             Navigate Student Life,
             <br />
-            <span
-              className="text-transparent"
-              style={{
-                backgroundImage: 'linear-gradient(135deg, #A855F7, #6366F1, #3B82F6)',
-                backgroundClip: 'text',
-                WebkitBackgroundClip: 'text',
-              }}
-            >
+            <span className="text-transparent" style={{ backgroundImage: 'linear-gradient(135deg, #A855F7, #6366F1, #3B82F6)', backgroundClip: 'text', WebkitBackgroundClip: 'text' }}>
               Master Your Money.
             </span>
           </h1>
@@ -125,32 +104,20 @@ export default function LandingPage() {
           </p>
         </div>
 
-        {/* CTA buttons */}
         <div className="flex flex-col sm:flex-row items-center justify-center gap-4 mb-16">
           <Link
             to="/register"
             className="flex items-center gap-2.5 px-8 py-4 rounded-2xl text-white font-bold text-base hover:-translate-y-0.5 active:scale-95"
-            style={{
-              background: 'linear-gradient(135deg, #A855F7, #7C3AED)',
-              boxShadow: '0 8px 30px rgba(168, 85, 247, 0.4)',
-            }}
+            style={{ background: 'linear-gradient(135deg, #A855F7, #7C3AED)', boxShadow: '0 8px 30px rgba(168, 85, 247, 0.4)' }}
           >
-            Get Started Free
-            <ArrowRight size={18} />
+            Get Started Free <ArrowRight size={18} />
           </Link>
           {canInstall ? (
-            <button
-              onClick={promptInstall}
-              className="flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-slate-800 text-slate-300 font-bold text-base border border-white/10 hover:bg-slate-700 hover:-translate-y-0.5"
-            >
-              <Download size={18} />
-              Add to Home Screen
+            <button onClick={promptInstall} className="flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-slate-800 text-slate-300 font-bold text-base border border-white/10 hover:bg-slate-700 hover:-translate-y-0.5">
+              <Download size={18} /> Add to Home Screen
             </button>
           ) : (
-            <Link
-              to="/login"
-              className="flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-slate-800 text-slate-300 font-bold text-base border border-white/10 hover:bg-slate-700 hover:-translate-y-0.5"
-            >
+            <Link to="/login" className="flex items-center gap-2.5 px-8 py-4 rounded-2xl bg-slate-800 text-slate-300 font-bold text-base border border-white/10 hover:bg-slate-700 hover:-translate-y-0.5">
               I have an account
             </Link>
           )}
@@ -164,11 +131,7 @@ export default function LandingPage() {
             return (
               <div
                 key={feat.title}
-                className={`
-                  ${isWide ? 'col-span-3 sm:col-span-2' : 'col-span-3 sm:col-span-1'}
-                  glass-card ${feat.bg} rounded-3xl p-6
-                  hover:border-white/20 hover:-translate-y-1 cursor-default
-                `}
+                className={`${isWide ? 'col-span-3 sm:col-span-2' : 'col-span-3 sm:col-span-1'} glass-card ${feat.bg} rounded-3xl p-6 hover:border-white/20 hover:-translate-y-1 cursor-default`}
               >
                 <div className="mb-4">
                   <div className="w-12 h-12 rounded-2xl bg-white/8 flex items-center justify-center">
@@ -181,14 +144,11 @@ export default function LandingPage() {
             )
           })}
 
-          {/* Stats card */}
           <div className="col-span-3 glass-card rounded-3xl p-6 hover:-translate-y-1">
             <div className="grid grid-cols-3 gap-6 text-center">
               {STATS.map(({ value, label, Icon }) => (
                 <div key={label}>
-                  <div className="flex justify-center mb-2">
-                    <Icon size={20} className="text-purple-400" />
-                  </div>
+                  <div className="flex justify-center mb-2"><Icon size={20} className="text-purple-400" /></div>
                   <p className="text-2xl font-black text-slate-100">{value}</p>
                   <p className="text-xs text-slate-500 font-medium mt-0.5">{label}</p>
                 </div>
@@ -206,15 +166,11 @@ export default function LandingPage() {
           </p>
           <div className="flex flex-wrap items-center justify-center gap-3 mb-12">
             {PARTNERS.map((partner) => (
-              <div
-                key={partner}
-                className="px-4 py-2 rounded-2xl glass-card text-slate-400 text-sm font-medium hover:border-purple-500/30 hover:text-slate-300"
-              >
+              <div key={partner} className="px-4 py-2 rounded-2xl glass-card text-slate-400 text-sm font-medium hover:border-purple-500/30 hover:text-slate-300">
                 {partner}
               </div>
             ))}
           </div>
-
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-white/8">
             <div className="flex items-center gap-2">
               <div className="w-7 h-7 rounded-lg bg-purple-500 flex items-center justify-center">
@@ -224,9 +180,7 @@ export default function LandingPage() {
             </div>
             <div className="flex items-center gap-6 text-slate-600 text-sm">
               {['Privacy', 'Terms', 'Contact', 'About'].map((link) => (
-                <a key={link} href="#" className="hover:text-slate-400">
-                  {link}
-                </a>
+                <a key={link} href="#" className="hover:text-slate-400">{link}</a>
               ))}
             </div>
           </div>

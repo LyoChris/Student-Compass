@@ -1,4 +1,4 @@
-import { Home, MessageSquare, ShoppingBag, MapPin, LogOut } from 'lucide-react'
+import { Home, MessageSquare, ShoppingBag, MapPin, LogOut, User } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 
@@ -7,6 +7,7 @@ const NAV_ITEMS = [
   { to: '/chat',      icon: MessageSquare, label: 'AI Chat'     },
   { to: '/market',    icon: ShoppingBag,   label: 'Marketplace' },
   { to: '/radar',     icon: MapPin,        label: 'Radar Deals' },
+  { to: '/profile',   icon: User,          label: 'Profile'     },
 ]
 
 export default function Sidebar() {

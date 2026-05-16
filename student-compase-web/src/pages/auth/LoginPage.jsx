@@ -1,13 +1,13 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Eye, EyeOff, AlertCircle, TrendingUp, ShoppingBag, MapPin, Zap } from 'lucide-react'
-import { useAuth } from '../hooks/useAuth'
+import { useAuth } from '../../hooks/useAuth'
 
 const FEATURES = [
-  { icon: Zap,          label: 'AI Financial Coach', color: 'text-purple-400' },
-  { icon: ShoppingBag,  label: 'Campus Marketplace',  color: 'text-blue-400'   },
-  { icon: MapPin,       label: 'Radar Deals',          color: 'text-green-400'  },
-  { icon: TrendingUp,   label: 'Financial Health',     color: 'text-orange-400' },
+  { icon: Zap,         label: 'AI Financial Coach', color: 'text-purple-400' },
+  { icon: ShoppingBag, label: 'Campus Marketplace',  color: 'text-blue-400'   },
+  { icon: MapPin,      label: 'Radar Deals',          color: 'text-green-400'  },
+  { icon: TrendingUp,  label: 'Financial Health',     color: 'text-orange-400' },
 ]
 
 export default function LoginPage() {
@@ -35,7 +35,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-slate-900 flex overflow-hidden">
-      {/* ─── Left decorative panel (desktop) ──────────────── */}
+      {/* Left decorative panel (desktop) */}
       <div className="hidden lg:flex flex-1 relative overflow-hidden items-center justify-center p-12">
         <div
           className="absolute inset-0"
@@ -70,10 +70,9 @@ export default function LoginPage() {
         </div>
       </div>
 
-      {/* ─── Right form panel ──────────────────────────────── */}
+      {/* Right form panel */}
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
-          {/* Logo */}
           <Link to="/" className="inline-flex items-center gap-2.5 mb-10">
             <div className="w-9 h-9 rounded-xl bg-purple-500 flex items-center justify-center shadow-lg shadow-purple-500/40">
               <span className="text-white font-black text-base">S</span>
@@ -84,7 +83,6 @@ export default function LoginPage() {
           <h1 className="text-3xl font-black text-slate-100 mb-1.5 tracking-tight">Welcome back</h1>
           <p className="text-slate-400 text-sm mb-8">Sign in to your student account.</p>
 
-          {/* Error banner */}
           {error && (
             <div className="flex items-start gap-3 p-4 rounded-2xl bg-red-500/10 border border-red-500/30 mb-6">
               <AlertCircle size={18} className="text-red-400 flex-shrink-0 mt-0.5" />
@@ -93,11 +91,8 @@ export default function LoginPage() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Email */}
             <div>
-              <label className="block text-sm font-semibold text-slate-300 mb-2">
-                Email address
-              </label>
+              <label className="block text-sm font-semibold text-slate-300 mb-2">Email address</label>
               <input
                 type="email"
                 name="email"
@@ -109,7 +104,6 @@ export default function LoginPage() {
               />
             </div>
 
-            {/* Password */}
             <div>
               <label className="block text-sm font-semibold text-slate-300 mb-2">Password</label>
               <div className="relative">
@@ -133,35 +127,27 @@ export default function LoginPage() {
               </div>
             </div>
 
-            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
               className="w-full py-4 rounded-2xl text-white font-bold text-base mt-2 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5 active:scale-95"
               style={{
-                background: loading
-                  ? '#7C3AED'
-                  : 'linear-gradient(135deg, #A855F7, #7C3AED)',
+                background: loading ? '#7C3AED' : 'linear-gradient(135deg, #A855F7, #7C3AED)',
                 boxShadow: '0 8px 30px rgba(168, 85, 247, 0.35)',
               }}
             >
               {loading ? (
                 <span className="flex items-center justify-center gap-2">
                   <span className="w-4 h-4 border-2 border-white/50 border-t-white rounded-full animate-spin" />
-                  Signing in…
+                  Signing in...
                 </span>
-              ) : (
-                'Login'
-              )}
+              ) : 'Login'}
             </button>
           </form>
 
           <p className="mt-7 text-center text-slate-500 text-sm">
             Don&apos;t have an account?{' '}
-            <Link
-              to="/register"
-              className="text-purple-400 font-bold hover:text-purple-300"
-            >
+            <Link to="/register" className="text-purple-400 font-bold hover:text-purple-300">
               Create one for free
             </Link>
           </p>

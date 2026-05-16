@@ -1,4 +1,5 @@
 import { createContext, useState, useEffect, useCallback } from 'react'
+import { flushSync } from 'react-dom'
 import { authApi } from '../api/authApi'
 import { accountApi } from '../api/accountApi'
 
@@ -44,8 +45,10 @@ export function AuthProvider({ children }) {
   const _save = useCallback((accessToken, profile) => {
     localStorage.setItem(TOKEN_KEY, accessToken)
     localStorage.setItem(USER_KEY, JSON.stringify(profile))
-    setToken(accessToken)
-    setUser(profile)
+    flushSync(() => {
+      setToken(accessToken)
+      setUser(profile)
+    })
   }, [])
 
   const login = useCallback(async (email, password) => {
