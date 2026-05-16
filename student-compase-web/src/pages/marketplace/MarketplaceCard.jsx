@@ -1,4 +1,5 @@
 import { BadgeCheck, ImageIcon, Sparkles, Tag } from 'lucide-react'
+import { Link } from 'react-router-dom'
 
 const conditionStyles = {
   NEW: 'bg-emerald-500/15 text-emerald-200 border-emerald-300/20',
@@ -50,7 +51,8 @@ export default function MarketplaceCard({ item }) {
       )}
 
       <div className="relative z-10">
-        <div className="relative aspect-[4/3] overflow-hidden bg-slate-950/50">
+        <Link to={`/marketplace/${item.id}`} className="block" aria-label={`View ${item.title}`}>
+          <div className="relative aspect-[4/3] overflow-hidden bg-slate-950/50">
           {imageUrl ? (
             <img
               src={imageUrl}
@@ -65,10 +67,11 @@ export default function MarketplaceCard({ item }) {
               </div>
             </div>
           )}
-          <div className="absolute bottom-3 right-3 rounded-2xl border border-white/10 bg-slate-950/80 px-3 py-2 text-lg font-black text-white backdrop-blur">
-            {formatPrice(item.price)}
+            <div className="absolute bottom-3 right-3 rounded-2xl border border-white/10 bg-slate-950/80 px-3 py-2 text-lg font-black text-white backdrop-blur">
+              {formatPrice(item.price)}
+            </div>
           </div>
-        </div>
+        </Link>
 
         <div className="space-y-4 p-4">
           <div className="flex flex-wrap items-center gap-2">
@@ -94,13 +97,13 @@ export default function MarketplaceCard({ item }) {
             ))}
           </div>
 
-          <button
-            type="button"
+          <Link
+            to={`/marketplace/${item.id}`}
             className="flex w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-3 text-sm font-black text-slate-200 hover:border-purple-300/30 hover:bg-purple-500/15 hover:text-purple-100"
           >
             <BadgeCheck size={16} />
             View Details
-          </button>
+          </Link>
         </div>
       </div>
     </article>

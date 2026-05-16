@@ -1,5 +1,5 @@
 import Sidebar from './Sidebar'
-import BottomNav from './BottomNav'
+import BottomNavigationBar from './BottomNavigationBar'
 import InstallBanner from '../common/InstallBanner'
 
 export default function AppShell({ children }) {
@@ -9,7 +9,7 @@ export default function AppShell({ children }) {
       <main className="flex-1 md:ml-64 overflow-y-auto">
         {children}
       </main>
-      <BottomNav />
+      <BottomNavigationBar />
       <InstallBanner />
     </div>
   )

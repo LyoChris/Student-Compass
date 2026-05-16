@@ -1,11 +1,11 @@
-import { Home, MessageSquare, ShoppingBag, MapPin, LogOut, User } from 'lucide-react'
+import { Home, ShoppingBag, MapPin, LogOut, Plus, User } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 
 const NAV_ITEMS = [
   { to: '/dashboard', icon: Home,          label: 'Home'        },
-  { to: '/chat',      icon: MessageSquare, label: 'AI Chat'     },
   { to: '/market',    icon: ShoppingBag,   label: 'Marketplace' },
+  { to: '/marketplace/sell', icon: Plus,   label: 'Sell Item', featured: true },
   { to: '/radar',     icon: MapPin,        label: 'Radar Deals' },
   { to: '/profile',   icon: User,          label: 'Profile'     },
 ]
@@ -36,13 +36,15 @@ export default function Sidebar() {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-1">
-        {NAV_ITEMS.map(({ to, icon: Icon, label }) => (
+        {NAV_ITEMS.map(({ to, icon: Icon, label, featured }) => (
           <NavLink
             key={to}
             to={to}
             className={({ isActive }) =>
               `flex items-center gap-3 px-4 py-3 rounded-2xl font-semibold text-sm transition-all ${
-                isActive
+                featured
+                  ? 'bg-purple-500 text-white shadow-[0_0_28px_rgba(168,85,247,0.35)] hover:bg-purple-400'
+                  : isActive
                   ? 'bg-purple-500/20 text-purple-400 border border-purple-500/30'
                   : 'text-slate-400 hover:text-slate-100 hover:bg-white/5'
               }`
