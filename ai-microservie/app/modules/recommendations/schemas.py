@@ -1,4 +1,5 @@
 from dataclasses import dataclass, field
+from typing import Literal
 
 from pydantic import BaseModel
 from uuid import UUID
@@ -20,7 +21,7 @@ class RecommendationItem(BaseModel):
 
 class RecommendationResponse(BaseModel):
     userId: str
-    source: str  # "llm" | "fallback"
+    source: Literal["llm", "fallback"]
     recommendations: list[RecommendationItem]
 
 

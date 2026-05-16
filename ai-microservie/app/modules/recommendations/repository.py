@@ -45,6 +45,8 @@ def load_profile(conn: Connection, user_id: str) -> ProfileRow | None:
 
 
 def load_published_products(conn: Connection) -> list[ProductRow]:
+    # INNER JOIN: products whose store is missing are intentionally excluded.
+    # Production FK on store_id guarantees this only drops orphaned rows.
     rows = conn.execute(
         select(
             catalog_products.c.id,
