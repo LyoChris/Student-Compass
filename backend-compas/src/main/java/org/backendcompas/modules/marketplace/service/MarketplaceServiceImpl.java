@@ -21,6 +21,7 @@ import org.backendcompas.modules.marketplace.model.ItemStatus;
 import org.backendcompas.modules.marketplace.model.MarketplaceItem;
 import org.backendcompas.modules.marketplace.repository.MarketplaceItemRepository;
 import org.backendcompas.modules.marketplace.repository.MarketplaceItemSpecification;
+import org.backendcompas.modules.profile.repository.StudentProfileRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -50,10 +51,19 @@ public class MarketplaceServiceImpl implements MarketplaceService {
 
     private final MarketplaceItemRepository marketplaceItemRepository;
     private final UserRepository userRepository;
+    private final StudentProfileRepository studentProfileRepository;
 
     @Override
     public ItemResponseDto createItem(CreateItemRequestDto request) {
-        String contactPhone = resolveContactPhone(request);
+        User seller = userRepository.findById(request.getSellerId())
+            .orElseThrow(() -> new NotFoundException("Seller not found"));
+
+        String contactPhone = resolveContactPhone(request, seller);
+
+        UUID sellerDormId = studentProfileRepository.findById(request.getSellerId())
+            .map(p -> p.getDormId())
+            .orElse(null);
+
         MarketplaceItem item = MarketplaceItem.builder()
             .sellerId(request.getSellerId())
             .contactPhone(contactPhone)
@@ -66,6 +76,9 @@ public class MarketplaceServiceImpl implements MarketplaceService {
             .isBoosted(Boolean.FALSE)
             .tags(safeList(request.getTags()))
             .imageUrls(safeList(request.getImageUrls()))
+            .sellerCityId(seller.getCity().getId())
+            .sellerFacultyId(seller.getFaculty().getId())
+            .sellerDormId(sellerDormId)
             .build();
 
         return toDto(marketplaceItemRepository.save(item));
@@ -213,6 +226,9 @@ public class MarketplaceServiceImpl implements MarketplaceService {
             .itemCondition(item.getItemCondition())
             .status(item.getStatus())
             .isBoosted(item.getIsBoosted())
+            .sellerCityId(item.getSellerCityId())
+            .sellerFacultyId(item.getSellerFacultyId())
+            .sellerDormId(item.getSellerDormId())
             .tags(List.copyOf(item.getTags()))
             .imageUrls(List.copyOf(item.getImageUrls()))
             .createdAt(item.getCreatedAt())
@@ -220,16 +236,9 @@ public class MarketplaceServiceImpl implements MarketplaceService {
             .build();
     }
 
-    private String resolveContactPhone(CreateItemRequestDto request) {
+    private String resolveContactPhone(CreateItemRequestDto request, User seller) {
         String requestedPhone = normalizePhone(request.getContactPhone());
-        if (requestedPhone != null) {
-            return requestedPhone;
-        }
-
-        User seller = userRepository.findById(request.getSellerId())
-            .orElseThrow(() -> new NotFoundException("Seller not found"));
-
-        return seller.getPhoneNumber();
+        return requestedPhone != null ? requestedPhone : seller.getPhoneNumber();
     }
 
     private String normalizePhone(String phone) {

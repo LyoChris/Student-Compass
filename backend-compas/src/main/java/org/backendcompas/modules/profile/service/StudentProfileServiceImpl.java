@@ -1,8 +1,10 @@
 package org.backendcompas.modules.profile.service;
 
 import lombok.RequiredArgsConstructor;
+import org.backendcompas.core.exception.BadRequestException;
 import org.backendcompas.core.exception.NotFoundException;
 import org.backendcompas.modules.account.repository.UserRepository;
+import org.backendcompas.modules.budget.service.BudgetService;
 import org.backendcompas.modules.profile.dto.FixedExpenseDto;
 import org.backendcompas.modules.profile.dto.FixedExpenseRequestDto;
 import org.backendcompas.modules.profile.dto.StudentProfileRequestDto;
@@ -10,6 +12,7 @@ import org.backendcompas.modules.profile.dto.StudentProfileResponseDto;
 import org.backendcompas.modules.profile.model.FixedExpense;
 import org.backendcompas.modules.profile.model.StudentProfile;
 import org.backendcompas.modules.profile.repository.StudentProfileRepository;
+import org.backendcompas.modules.radar.repository.DormRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -23,6 +26,8 @@ public class StudentProfileServiceImpl implements StudentProfileService {
 
     private final StudentProfileRepository profileRepository;
     private final UserRepository userRepository;
+    private final DormRepository dormRepository;
+    private final BudgetService budgetService;
 
     @Override
     public StudentProfileResponseDto getProfile(UUID userId) {
@@ -39,6 +44,10 @@ public class StudentProfileServiceImpl implements StudentProfileService {
             throw new NotFoundException("User not found: " + userId);
         }
 
+        if (dto.getDormId() != null && !dormRepository.existsById(dto.getDormId())) {
+            throw new BadRequestException("Dorm not found: " + dto.getDormId());
+        }
+
         boolean isNew = !profileRepository.existsById(userId);
 
         StudentProfile profile = isNew
@@ -53,8 +62,8 @@ public class StudentProfileServiceImpl implements StudentProfileService {
         profile.setEatingHabit(dto.getEatingHabit());
         profile.setHomePackageFrequency(dto.getHomePackageFrequency());
         profile.setMonthlyBudget(dto.getMonthlyBudget());
+        profile.setDormId(dto.getDormId());
 
-        // Full replace: delete old rows, insert new ones via @ElementCollection semantics
         profile.getFixedExpenses().clear();
         List<FixedExpense> expenses = dto.getFixedExpenses()
                 .stream()
@@ -63,6 +72,7 @@ public class StudentProfileServiceImpl implements StudentProfileService {
         profile.getFixedExpenses().addAll(expenses);
 
         profileRepository.save(profile);
+        budgetService.recompute(userId);
 
         return new UpsertResult(toDto(profile), isNew);
     }
@@ -92,6 +102,7 @@ public class StudentProfileServiceImpl implements StudentProfileService {
                 profile.getHomePackageFrequency(),
                 profile.getMonthlyBudget(),
                 expenses,
+                profile.getDormId(),
                 profile.getCreatedAt(),
                 profile.getUpdatedAt()
         );

@@ -54,6 +54,15 @@ public class ItemResponseDto {
     @Schema(description = "Whether the listing is boosted for premium visibility. Boosted listings are always returned first.", example = "true", requiredMode = Schema.RequiredMode.REQUIRED)
     private Boolean isBoosted;
 
+    @Schema(description = "City UUID of the seller (proximity ranking).", nullable = true)
+    private UUID sellerCityId;
+
+    @Schema(description = "Faculty UUID of the seller (proximity ranking).", nullable = true)
+    private UUID sellerFacultyId;
+
+    @Schema(description = "Dorm UUID of the seller — null if no dorm.", nullable = true)
+    private UUID sellerDormId;
+
     @Schema(description = "Tags attached to the listing.", example = "[\"engineering\", \"year-2\", \"exam-ready\"]", requiredMode = Schema.RequiredMode.REQUIRED)
     private List<String> tags;
 
