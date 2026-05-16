@@ -92,6 +92,19 @@ public class MarketplaceItem {
     @Builder.Default
     private Boolean isBoosted = Boolean.FALSE;
 
+    /** Denormalized seller location snapshot — captured at listing creation time. */
+    @Column(name = "seller_city_id")
+    @Schema(description = "City UUID of the seller at listing creation time (proximity ranking).")
+    private UUID sellerCityId;
+
+    @Column(name = "seller_faculty_id")
+    @Schema(description = "Faculty UUID of the seller at listing creation time (proximity ranking).")
+    private UUID sellerFacultyId;
+
+    @Column(name = "seller_dorm_id")
+    @Schema(description = "Dorm UUID of the seller at listing creation time — null if seller has no dorm.")
+    private UUID sellerDormId;
+
     @ElementCollection
     @CollectionTable(name = "student_marketplace_tags", joinColumns = @JoinColumn(name = "item_id"))
     @OrderColumn(name = "position")

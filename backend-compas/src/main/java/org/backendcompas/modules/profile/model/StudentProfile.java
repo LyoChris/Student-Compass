@@ -46,6 +46,10 @@ public class StudentProfile {
     @Column(name = "user_id", updatable = false, nullable = false)
     private UUID userId;
 
+    /** Optional dorm selected by the student. Validated for existence at the service layer. */
+    @Column(name = "dorm_id")
+    private UUID dormId;
+
     @Enumerated(EnumType.STRING)
     @Column(name = "living_area", nullable = false, length = 30)
     private LivingArea livingArea;

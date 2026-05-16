@@ -34,6 +34,10 @@ public record StudentProfileResponseDto(
         @Schema(description = "Fixed monthly expenses (rent, subscriptions, etc.), sorted by name")
         List<FixedExpenseDto> fixedExpenses,
 
+        @Schema(description = "Optional dorm UUID — null if not living in a dorm or not selected",
+                example = "d0000001-0000-0000-0000-000000000000", nullable = true)
+        UUID dormId,
+
         @Schema(description = "UTC timestamp of when this profile was first created")
         Instant createdAt,
 

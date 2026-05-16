@@ -17,6 +17,7 @@ import org.backendcompas.modules.profile.model.LivingArea;
 import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Schema(description = "Request body for creating or updating a student's financial onboarding profile")
 @Data
@@ -71,4 +72,11 @@ public class StudentProfileRequestDto {
     @Valid
     @Builder.Default
     private List<FixedExpenseRequestDto> fixedExpenses = new ArrayList<>();
+
+    @Schema(
+            description = "Optional UUID of the dorm the student lives in. Must belong to the student's city.",
+            example = "d0000001-0000-0000-0000-000000000000",
+            requiredMode = Schema.RequiredMode.NOT_REQUIRED
+    )
+    private UUID dormId;
 }
