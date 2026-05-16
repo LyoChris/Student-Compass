@@ -1,9 +1,8 @@
-import { createContext, useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { flushSync } from 'react-dom'
 import { authApi } from '../api/authApi'
 import { accountApi } from '../api/accountApi'
-
-export const AuthContext = createContext(null)
+import { AuthContext } from './AuthContextValue'
 
 const TOKEN_KEY = 'stufi_access_token'
 const USER_KEY  = 'stufi_user'

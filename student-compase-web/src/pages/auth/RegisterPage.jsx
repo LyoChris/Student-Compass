@@ -42,13 +42,17 @@ export default function RegisterPage() {
   const [error, setError]             = useState('')
 
   useEffect(() => {
-    setForm((f) => ({ ...f, facultyId: '' }))
     loadFaculties(form.cityId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.cityId])
 
   const handleChange = (e) => {
-    setForm((f) => ({ ...f, [e.target.name]: e.target.value }))
+    const { name, value } = e.target
+    setForm((f) => ({
+      ...f,
+      [name]: value,
+      ...(name === 'cityId' ? { facultyId: '' } : {}),
+    }))
     if (error) setError('')
   }
 
@@ -73,7 +77,6 @@ export default function RegisterPage() {
 
   return (
     <div className="min-h-screen bg-slate-900 flex overflow-hidden">
-      {/* Left decorative panel (desktop) */}
       <div className="hidden lg:flex flex-1 relative overflow-hidden items-center justify-center p-12">
         <div
           className="absolute inset-0"
@@ -113,7 +116,6 @@ export default function RegisterPage() {
         </div>
       </div>
 
-      {/* Right form panel */}
       <div className="flex-1 flex items-start justify-center p-6 overflow-y-auto">
         <div className="w-full max-w-sm py-8">
           <Link to="/" className="inline-flex items-center gap-2.5 mb-8">

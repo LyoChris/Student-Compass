@@ -73,6 +73,20 @@ body {
   border-radius: 0.75rem;
 }
 
+@keyframes boosted-edge {
+  0% { background-position: 0% 50%; }
+  100% { background-position: 200% 50%; }
+}
+
+.boosted-edge {
+  background:
+    linear-gradient(#1e293bcc, #1e293bcc) padding-box,
+    linear-gradient(120deg, rgba(168, 85, 247, 0.9), rgba(34, 211, 238, 0.45), rgba(168, 85, 247, 0.9)) border-box;
+  background-size: 200% 200%;
+  border: 1px solid transparent;
+  animation: boosted-edge 4s linear infinite;
+}
+
 /* ─── Safe area padding for notch devices ───────────────── */
 .safe-bottom {
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.5rem);

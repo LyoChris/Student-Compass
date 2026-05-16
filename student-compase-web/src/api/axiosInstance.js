@@ -29,8 +29,16 @@ api.interceptors.response.use(
   (res) => res,
   async (error) => {
     const original = error.config
+    const isRefreshRequest = original?.url?.includes('/api/v1/auth/refresh')
 
-    if (error.response?.status !== 401 || original._retry) {
+    if (isRefreshRequest) {
+      processQueue(error, null)
+      localStorage.removeItem('stufi_access_token')
+      localStorage.removeItem('stufi_user')
+      return Promise.reject(error)
+    }
+
+    if (error.response?.status !== 401 || original?._retry) {
       return Promise.reject(error)
     }
 

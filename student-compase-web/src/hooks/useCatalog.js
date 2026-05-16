@@ -4,11 +4,10 @@ import { catalogApi } from '../api/catalogApi'
 export function useCatalog() {
   const [cities, setCities]                   = useState([])
   const [faculties, setFaculties]             = useState([])
-  const [loadingCities, setLoadingCities]     = useState(false)
+  const [loadingCities, setLoadingCities]     = useState(true)
   const [loadingFaculties, setLoadingFaculties] = useState(false)
 
   useEffect(() => {
-    setLoadingCities(true)
     catalogApi
       .getCities()
       .then(({ data }) => setCities(data))
