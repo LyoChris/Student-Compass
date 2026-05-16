@@ -8,27 +8,21 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
-import jakarta.persistence.UniqueConstraint;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.math.BigDecimal;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table(
-        name = "budget_categories",
-        uniqueConstraints = @UniqueConstraint(
-                name = "uq_budget_category_name",
-                columnNames = {"budget_id", "name"}
-        )
-)
+@Table(name = "transactions")
 @Getter
 @Setter
 @NoArgsConstructor
-public class BudgetCategory {
+public class Transaction {
 
     @Id
     @GeneratedValue
@@ -36,16 +30,19 @@ public class BudgetCategory {
     @Column(nullable = false, updatable = false)
     private UUID id;
 
+    @Column(name = "user_id", nullable = false, updatable = false)
+    private UUID userId;
+
     @ManyToOne(optional = false, fetch = FetchType.LAZY)
-    @JoinColumn(name = "budget_id", nullable = false, updatable = false)
-    private MonthlyBudget budget;
+    @JoinColumn(name = "category_id", nullable = false, updatable = false)
+    private BudgetCategory category;
 
-    @Column(nullable = false, length = 50)
-    private String name;
+    @Column(nullable = false, precision = 12, scale = 2)
+    private BigDecimal amount;
 
-    @Column(name = "allocated_amount", nullable = false, precision = 12, scale = 2)
-    private BigDecimal allocatedAmount;
+    @Column(length = 255)
+    private String description;
 
-    @Column(name = "spent_amount", nullable = false, precision = 12, scale = 2)
-    private BigDecimal spentAmount = BigDecimal.ZERO;
+    @Column(name = "transaction_date", nullable = false)
+    private LocalDateTime transactionDate;
 }

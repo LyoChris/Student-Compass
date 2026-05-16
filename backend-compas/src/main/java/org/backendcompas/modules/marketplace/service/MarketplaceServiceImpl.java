@@ -8,6 +8,7 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import org.backendcompas.core.exception.BadRequestException;
+import org.backendcompas.core.exception.ForbiddenException;
 import org.backendcompas.core.exception.NotFoundException;
 import org.backendcompas.modules.account.model.User;
 import org.backendcompas.modules.account.repository.UserRepository;
@@ -123,8 +124,24 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     }
 
     @Override
-    public ItemResponseDto updateItem(UUID id, UpdateItemRequestDto request) {
+    @Transactional(readOnly = true)
+    public PagedMarketplaceResponse getMyItems(UUID sellerId, Pageable pageable) {
+        Page<MarketplaceItem> page = marketplaceItemRepository.findBySellerIdOrderByCreatedAtDesc(sellerId, pageable);
+        List<ItemResponseDto> content = page.getContent().stream().map(this::toDto).toList();
+        return PagedMarketplaceResponse.builder()
+            .content(content)
+            .pageNumber(page.getNumber())
+            .pageSize(page.getSize())
+            .totalElements(page.getTotalElements())
+            .totalPages(page.getTotalPages())
+            .isLast(page.isLast())
+            .build();
+    }
+
+    @Override
+    public ItemResponseDto updateItem(UUID id, UpdateItemRequestDto request, UUID currentUserId) {
         MarketplaceItem item = findItem(id);
+        assertOwner(item, currentUserId);
 
         if (request.getTitle() != null) {
             item.setTitle(request.getTitle().trim());
@@ -152,28 +169,43 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     }
 
     @Override
-    public ItemResponseDto changeStatus(UUID id, ItemStatus status) {
+    public ItemResponseDto changeStatus(UUID id, ItemStatus status, UUID currentUserId) {
         if (status == null) {
             throw new BadRequestException("Status is required");
         }
 
         MarketplaceItem item = findItem(id);
+        assertOwner(item, currentUserId);
         item.setStatus(status);
 
         return toDto(marketplaceItemRepository.save(item));
     }
 
     @Override
-    public ItemResponseDto boostItem(UUID id) {
+    public ItemResponseDto boostItem(UUID id, UUID currentUserId) {
         MarketplaceItem item = findItem(id);
+        assertOwner(item, currentUserId);
         item.setIsBoosted(Boolean.TRUE);
 
         return toDto(marketplaceItemRepository.save(item));
     }
 
+    @Override
+    public void deleteItem(UUID id, UUID currentUserId) {
+        MarketplaceItem item = findItem(id);
+        assertOwner(item, currentUserId);
+        marketplaceItemRepository.delete(item);
+    }
+
     private MarketplaceItem findItem(UUID id) {
         return marketplaceItemRepository.findById(id)
             .orElseThrow(() -> new NotFoundException("Marketplace item not found"));
+    }
+
+    private void assertOwner(MarketplaceItem item, UUID currentUserId) {
+        if (!item.getSellerId().equals(currentUserId)) {
+            throw new ForbiddenException("You are not the owner of this listing");
+        }
     }
 
     private void validatePriceRange(BigDecimal minPrice, BigDecimal maxPrice) {

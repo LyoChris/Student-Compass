@@ -2,6 +2,8 @@ package org.backendcompas.modules.budget.controller;
 
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
+import io.swagger.v3.oas.annotations.enums.ParameterIn;
+import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
@@ -9,288 +11,520 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.backendcompas.core.exception.ApiError;
-import org.backendcompas.modules.budget.dto.BudgetPlanResponseDto;
+import org.backendcompas.core.security.CustomUserDetails;
+import org.backendcompas.modules.budget.dto.CategoryAdjustDto;
+import org.backendcompas.modules.budget.dto.ManualTransactionRequestDto;
+import org.backendcompas.modules.budget.dto.MonthlyBudgetResponseDto;
+import org.backendcompas.modules.budget.dto.ParsedTransactionDto;
 import org.backendcompas.modules.budget.service.BudgetService;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.multipart.MultipartFile;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 
 @Tag(
         name = "Budget",
         description = """
-                Deterministic monthly spending plan derived from the student's financial profile.
+                Dynamic month-by-month personal finance planner for students.
 
-                ## How the plan is computed
-                The engine never calls an LLM — it applies a fixed weight matrix to the student's
-                **disposable income** (`monthlyBudget − fixedExpenses`) and then adjusts multipliers
-                based on the student's profile:
+                ## Budget lifecycle
+                1. Call `GET /current` for any `month` + `year`. If no budget exists for that period
+                   it is automatically created — either by copying the previous month's categories
+                   (with rollover surplus) or via the default weight-matrix template.
+                2. Adjust allocations or add custom categories with `PUT /{budgetId}/categories`.
+                3. Log day-to-day spending via `POST /transactions` or bulk-import a Revolut / ING
+                   CSV with `POST /{budgetId}/upload-statement`.
+                4. Delete categories you no longer need with `DELETE /{budgetId}/categories/{name}`.
 
-                | Profile signal | Effect |
-                |---|---|
-                | `eatingHabit = COOKING` | FOOD × 0.85 |
-                | `eatingHabit = EATING_OUT / DELIVERY` | FOOD × 1.25 |
-                | `livingArea = DORMITORY` | HOUSING × 0.40, TRANSPORT × 0.70 |
-                | `livingArea = RENT` | HOUSING × 1.30 |
-                | `livingArea = COMMUTER` | TRANSPORT × 1.60 |
-                | `homePackageFrequency = WEEKLY` | FOOD × 0.80 |
-                | `homePackageFrequency = NONE` | FOOD × 1.10 |
+                ## Safe-to-Spend (S2S)
+                Every `GET /current` response includes `safeToSpendPerDay`:
+                ```
+                S2S = totalRemaining / remainingDaysInMonth
+                ```
+                - **Current month** — remaining days = max(1, daysInMonth − today + 1)
+                - **Future month** — remaining days = full month length
+                - **Past month**   — remaining days = 1 (budget is closed)
 
-                After applying all multipliers, weights are **renormalized** to sum to 1.0 before
-                being multiplied by `disposable`. Fixed expenses are passed through verbatim in the
-                response alongside the category breakdown.
+                ## Rollover
+                When a new month budget is created and a previous month exists, any positive
+                `allocated − spent` surplus per category is summed and added to the new month's
+                `rolloverAmount`, which is included in `totalRemaining` and therefore in S2S.
 
-                ## Auto-recompute
-                The plan is automatically recomputed every time the student's profile is created or
-                updated via `PUT /api/v1/profiles/{userId}`. A manual recompute endpoint is also
-                available for cases where an admin has changed the profile.
-
-                ## Access rules
-                A student may only read/recompute their **own** plan.
-                An **ADMIN** may access or recompute any student's plan.
+                ## Ownership
+                Every write endpoint verifies that the authenticated user owns the target budget.
+                A mismatch returns `403 Forbidden`.
                 """
 )
 @RestController
-@RequestMapping("/api/v1/budget")
+@RequestMapping(value = "/api/v1/budgets", produces = MediaType.APPLICATION_JSON_VALUE)
+@SecurityRequirement(name = "BearerAuth")
 @RequiredArgsConstructor
+@Validated
 public class BudgetController {
 
     private final BudgetService budgetService;
 
-    // -------------------------------------------------------------------------
-    // GET /{userId}
-    // -------------------------------------------------------------------------
+    // =========================================================================
+    // GET /current
+    // =========================================================================
 
     @Operation(
-            summary = "Get the current budget plan",
+            summary = "Get or create the monthly budget",
             description = """
-                    Returns the latest deterministic spending plan stored for the given user.
+                    Returns the budget for the specified `month` / `year`, creating it on first access.
 
-                    The plan is composed of:
-                    - `monthlyBudget` — the total budget declared in the student's profile
-                    - `fixedTotal` — sum of all fixed monthly expenses (rent, subscriptions, …)
-                    - `disposable` — `monthlyBudget − fixedTotal` (floored at 0 if negative)
-                    - `categories` — per-category allocation of `disposable` (FOOD, TRANSPORT, …)
-                    - `fixedExpenses` — verbatim fixed expense list from the profile
+                    **Creation strategy (first access only):**
+                    - If a budget exists for the previous calendar month it is used as the template:
+                      categories and allocations are copied, spent amounts are reset to 0, and any
+                      surplus (`allocated − spent > 0`) is summed into `rolloverAmount`.
+                    - If no previous month exists, the system generates a default template from the
+                      student's profile weight matrix (COOKING / DORMITORY / etc. multipliers).
+                      Falls back to standard weights when no profile is on file.
 
-                    Returns **404** if the student has never submitted a profile (and therefore no
-                    plan has ever been computed). Ask the student to complete onboarding first, or
-                    call `POST /api/v1/budget/{userId}/recompute` after the profile is in place.
+                    **Idempotent** — subsequent calls for the same month return the stored data.
 
-                    **Access rules:**
-                    - A student may only fetch **their own** plan (`userId` must match the JWT subject).
-                    - An **ADMIN** may fetch any student's plan.
-                    """,
-            security = @SecurityRequirement(name = "BearerAuth")
+                    Month and year default to the current calendar month when omitted.
+                    """
     )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
-                    description = "Budget plan found and returned successfully",
+                    description = "Budget found or successfully created.",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BudgetPlanResponseDto.class),
-                            examples = @ExampleObject(
-                                    name = "Student on rent, cooking, monthly package",
-                                    value = """
-                                            {
-                                              "planId": "c3d4e5f6-1234-5678-abcd-000000000001",
-                                              "userId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-                                              "monthlyBudget": 1500.00,
-                                              "fixedTotal": 400.00,
-                                              "disposable": 1100.00,
-                                              "categories": [
-                                                { "category": "FOOD",      "amount": 330.73 },
-                                                { "category": "HOUSING",   "amount": 117.34 },
-                                                { "category": "LEISURE",   "amount": 96.55  },
-                                                { "category": "PERSONAL",  "amount": 96.55  },
-                                                { "category": "SAVINGS",   "amount": 144.83 },
-                                                { "category": "SUPPLIES",  "amount": 77.24  },
-                                                { "category": "TRANSPORT", "amount": 116.76 }
-                                              ],
-                                              "fixedExpenses": [
-                                                { "name": "Chirie",   "amount": 350.00 },
-                                                { "name": "Internet", "amount": 50.00  }
-                                              ],
-                                              "updatedAt": "2026-05-16T10:00:00Z"
-                                            }
-                                            """
-                            )
+                            schema = @Schema(implementation = MonthlyBudgetResponseDto.class),
+                            examples = {
+                                    @ExampleObject(
+                                            name = "May 2026 — first access, previous month copied",
+                                            value = """
+                                                    {
+                                                      "budgetId": "b1e2f3a4-5678-90ab-cdef-000000000001",
+                                                      "userId":   "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                                                      "month": 5, "year": 2026,
+                                                      "totalIncome":    1500.00,
+                                                      "rolloverAmount":   85.50,
+                                                      "totalAllocated": 1500.00,
+                                                      "totalSpent":        0.00,
+                                                      "totalRemaining": 1585.50,
+                                                      "safeToSpendPerDay": 52.85,
+                                                      "categories": [
+                                                        { "id": "c1a2b3d4-0001-0000-0000-000000000001", "name": "FOOD",      "allocatedAmount": 450.00, "spentAmount": 0.00, "remaining": 450.00 },
+                                                        { "id": "c1a2b3d4-0002-0000-0000-000000000001", "name": "HOUSING",   "allocatedAmount": 225.00, "spentAmount": 0.00, "remaining": 225.00 },
+                                                        { "id": "c1a2b3d4-0003-0000-0000-000000000001", "name": "LEISURE",   "allocatedAmount": 150.00, "spentAmount": 0.00, "remaining": 150.00 },
+                                                        { "id": "c1a2b3d4-0004-0000-0000-000000000001", "name": "PERSONAL",  "allocatedAmount": 150.00, "spentAmount": 0.00, "remaining": 150.00 },
+                                                        { "id": "c1a2b3d4-0005-0000-0000-000000000001", "name": "SAVINGS",   "allocatedAmount": 225.00, "spentAmount": 0.00, "remaining": 225.00 },
+                                                        { "id": "c1a2b3d4-0006-0000-0000-000000000001", "name": "SUPPLIES",  "allocatedAmount": 120.00, "spentAmount": 0.00, "remaining": 120.00 },
+                                                        { "id": "c1a2b3d4-0007-0000-0000-000000000001", "name": "TRANSPORT", "allocatedAmount": 180.00, "spentAmount": 0.00, "remaining": 180.00 }
+                                                      ],
+                                                      "updatedAt": "2026-05-01T08:00:00Z"
+                                                    }
+                                                    """
+                                    ),
+                                    @ExampleObject(
+                                            name = "May 2026 — mid-month with spending",
+                                            value = """
+                                                    {
+                                                      "budgetId": "b1e2f3a4-5678-90ab-cdef-000000000001",
+                                                      "userId":   "3fa85f64-5717-4562-b3fc-2c963f66afa6",
+                                                      "month": 5, "year": 2026,
+                                                      "totalIncome":    1500.00,
+                                                      "rolloverAmount":   85.50,
+                                                      "totalAllocated": 1500.00,
+                                                      "totalSpent":      320.40,
+                                                      "totalRemaining": 1265.10,
+                                                      "safeToSpendPerDay": 42.17,
+                                                      "categories": [
+                                                        { "id": "c1a2b3d4-0001-0000-0000-000000000001", "name": "FOOD",      "allocatedAmount": 450.00, "spentAmount": 210.50, "remaining": 239.50 },
+                                                        { "id": "c1a2b3d4-0007-0000-0000-000000000001", "name": "TRANSPORT", "allocatedAmount": 180.00, "spentAmount": 109.90, "remaining":  70.10 }
+                                                      ],
+                                                      "updatedAt": "2026-05-16T14:30:00Z"
+                                                    }
+                                                    """
+                                    )
+                            }
                     )
             ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "No valid Bearer token was provided in the `Authorization` header",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ApiError.class),
+            @ApiResponse(responseCode = "401", description = "No valid Bearer token provided.",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
                             examples = @ExampleObject(value = """
-                                    { "status": 401, "error": "Unauthorized", "message": "Full authentication is required" }
-                                    """)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "The authenticated user is neither the plan owner nor an ADMIN",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ApiError.class),
+                                    {"status":401,"error":"Unauthorized","message":"Full authentication is required","path":"/api/v1/budgets/current","timestamp":"2026-05-16T12:00:00Z"}
+                                    """))),
+            @ApiResponse(responseCode = "400", description = "month or year parameter is out of range.",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
                             examples = @ExampleObject(value = """
-                                    { "status": 403, "error": "Forbidden", "message": "Access denied" }
-                                    """)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "No budget plan exists for this user — the student has not completed onboarding yet",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ApiError.class),
-                            examples = @ExampleObject(value = """
-                                    { "status": 404, "error": "Not Found", "message": "No budget plan found for user: 3fa85f64-5717-4562-b3fc-2c963f66afa6" }
-                                    """)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Unexpected server error",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ApiError.class)
-                    )
-            )
+                                    {"status":400,"error":"Bad Request","message":"month must be between 1 and 12","path":"/api/v1/budgets/current","timestamp":"2026-05-16T12:00:00Z"}
+                                    """)))
     })
-    @GetMapping("/{userId}")
-    @PreAuthorize("#userId == authentication.principal.user.id or hasRole('ADMIN')")
-    public ResponseEntity<BudgetPlanResponseDto> getPlan(
+    @GetMapping("/current")
+    public ResponseEntity<MonthlyBudgetResponseDto> getCurrentBudget(
+            @AuthenticationPrincipal CustomUserDetails userDetails,
+
             @Parameter(
-                    description = "UUID of the user whose budget plan to retrieve. Must match the authenticated user's ID unless the caller is an ADMIN.",
-                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-                    required = true
+                    name = "month",
+                    in = ParameterIn.QUERY,
+                    description = "Calendar month (1–12). Defaults to the current month when omitted.",
+                    example = "5",
+                    schema = @Schema(type = "integer", minimum = "1", maximum = "12")
             )
-            @PathVariable UUID userId) {
-        return ResponseEntity.ok(budgetService.getPlan(userId));
+            @RequestParam(required = false) Integer month,
+
+            @Parameter(
+                    name = "year",
+                    in = ParameterIn.QUERY,
+                    description = "Four-digit calendar year (≥ 2020). Defaults to the current year when omitted.",
+                    example = "2026",
+                    schema = @Schema(type = "integer", minimum = "2020")
+            )
+            @RequestParam(required = false) Integer year
+    ) {
+        LocalDate today = LocalDate.now();
+        int m = month != null ? month : today.getMonthValue();
+        int y = year  != null ? year  : today.getYear();
+
+        if (m < 1 || m > 12) {
+            throw new org.backendcompas.core.exception.BadRequestException("month must be between 1 and 12");
+        }
+        if (y < 2020) {
+            throw new org.backendcompas.core.exception.BadRequestException("year must be 2020 or later");
+        }
+
+        return ResponseEntity.ok(budgetService.getOrCreateBudget(userDetails.getUserId(), m, y));
     }
 
-    // -------------------------------------------------------------------------
-    // POST /{userId}/recompute
-    // -------------------------------------------------------------------------
+    // =========================================================================
+    // PUT /{budgetId}/categories
+    // =========================================================================
 
     @Operation(
-            summary = "Recompute the budget plan from the current profile",
+            summary = "Add or update a budget category",
             description = """
-                    Reads the student's **current** financial profile and derives a fresh deterministic
-                    spending plan using the weight matrix described in the tag description above.
-
                     **Upsert semantics:**
-                    - If no plan exists yet, a new `budget_plans` row is created.
-                    - If a plan already exists, all amounts are overwritten in-place (same `planId`).
+                    - If a category with `categoryName` already exists inside the budget, its
+                      `allocatedAmount` is updated in-place. `spentAmount` is not touched.
+                    - If the category does not exist, a new row is created with `spentAmount = 0`.
 
-                    This endpoint is called automatically by the profile upsert
-                    (`PUT /api/v1/profiles/{userId}`) so in most cases the frontend does not need to
-                    call it explicitly. Use it if you need to force a refresh after an admin changes
-                    the profile directly.
+                    Category names are matched **case-insensitively**.
+                    Custom names are fully supported (e.g. `GYM`, `HOBBY`, `SUBSCRIPTIONS`).
 
-                    Returns **404** if the user has not yet submitted a financial profile — the student
-                    must complete onboarding before a plan can be computed.
+                    **Ownership required:** the authenticated user must own this budget.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Category created or updated successfully. No body returned.", content = @Content),
+            @ApiResponse(responseCode = "400", description = "Request body fails validation (blank name, negative allocation, etc.).",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
+                            examples = @ExampleObject(value = """
+                                    {"status":400,"error":"Bad Request","message":"newAllocation must be 0.00 or greater","path":"/api/v1/budgets/b1e2f3a4-5678-90ab-cdef-000000000001/categories","timestamp":"2026-05-16T12:00:00Z"}
+                                    """))),
+            @ApiResponse(responseCode = "401", description = "No valid Bearer token provided.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "403", description = "Authenticated user does not own this budget.",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
+                            examples = @ExampleObject(value = """
+                                    {"status":403,"error":"Forbidden","message":"You do not have permission to modify this budget","path":"/api/v1/budgets/b1e2f3a4-5678-90ab-cdef-000000000001/categories","timestamp":"2026-05-16T12:00:00Z"}
+                                    """))),
+            @ApiResponse(responseCode = "404", description = "Budget not found.",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
+                            examples = @ExampleObject(value = """
+                                    {"status":404,"error":"Not Found","message":"Budget not found: b1e2f3a4-5678-90ab-cdef-000000000001","path":"/api/v1/budgets/b1e2f3a4-5678-90ab-cdef-000000000001/categories","timestamp":"2026-05-16T12:00:00Z"}
+                                    """)))
+    })
+    @PutMapping("/{budgetId}/categories")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ResponseEntity<Void> adjustCategory(
+            @Parameter(
+                    name = "budgetId",
+                    in = ParameterIn.PATH,
+                    description = "UUID of the target monthly budget.",
+                    required = true,
+                    example = "b1e2f3a4-5678-90ab-cdef-000000000001",
+                    schema = @Schema(type = "string", format = "uuid")
+            )
+            @PathVariable UUID budgetId,
 
-                    **Access rules:**
-                    - A student may only recompute **their own** plan.
-                    - An **ADMIN** may recompute any student's plan.
-                    """,
-            security = @SecurityRequirement(name = "BearerAuth")
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    description = "Category name and new allocation amount.",
+                    content = @Content(
+                            schema = @Schema(implementation = CategoryAdjustDto.class),
+                            examples = {
+                                    @ExampleObject(name = "Update existing FOOD allocation",
+                                            value = """
+                                                    { "categoryName": "FOOD", "newAllocation": 500.00 }
+                                                    """),
+                                    @ExampleObject(name = "Add a custom GYM category",
+                                            value = """
+                                                    { "categoryName": "GYM", "newAllocation": 80.00 }
+                                                    """)
+                            }
+                    )
+            )
+            @Valid @RequestBody CategoryAdjustDto dto,
+
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        budgetService.adjustCategory(userDetails.getUserId(), budgetId, dto);
+        return ResponseEntity.noContent().build();
+    }
+
+    // =========================================================================
+    // DELETE /{budgetId}/categories/{name}
+    // =========================================================================
+
+    @Operation(
+            summary = "Delete a budget category",
+            description = """
+                    Permanently removes a named category and all its associated transactions
+                    (cascaded via the FK on the `transactions` table) from the specified budget.
+
+                    The `name` path segment is **URL-encoded** — a category named `BOLT FOOD`
+                    must be requested as `BOLT%20FOOD`. Matching is case-insensitive server-side.
+
+                    **Ownership required:** the authenticated user must own this budget.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Category deleted successfully. No body returned.", content = @Content),
+            @ApiResponse(responseCode = "401", description = "No valid Bearer token provided.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "403", description = "Authenticated user does not own this budget.",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
+                            examples = @ExampleObject(value = """
+                                    {"status":403,"error":"Forbidden","message":"You do not have permission to modify this budget","path":"/api/v1/budgets/b1e2f3a4-5678-90ab-cdef-000000000001/categories/FOOD","timestamp":"2026-05-16T12:00:00Z"}
+                                    """))),
+            @ApiResponse(responseCode = "404", description = "Budget or category not found.",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
+                            examples = @ExampleObject(value = """
+                                    {"status":404,"error":"Not Found","message":"Category 'SAVINGS' not found in budget b1e2f3a4-5678-90ab-cdef-000000000001","path":"/api/v1/budgets/b1e2f3a4-5678-90ab-cdef-000000000001/categories/SAVINGS","timestamp":"2026-05-16T12:00:00Z"}
+                                    """)))
+    })
+    @DeleteMapping("/{budgetId}/categories/{name}")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ResponseEntity<Void> deleteCategory(
+            @Parameter(
+                    name = "budgetId",
+                    in = ParameterIn.PATH,
+                    description = "UUID of the target monthly budget.",
+                    required = true,
+                    example = "b1e2f3a4-5678-90ab-cdef-000000000001",
+                    schema = @Schema(type = "string", format = "uuid")
+            )
+            @PathVariable UUID budgetId,
+
+            @Parameter(
+                    name = "name",
+                    in = ParameterIn.PATH,
+                    description = "URL-encoded category name to delete. Matched case-insensitively.",
+                    required = true,
+                    example = "SAVINGS",
+                    schema = @Schema(type = "string", maxLength = 50)
+            )
+            @PathVariable @Size(max = 50) String name,
+
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        budgetService.deleteCategory(userDetails.getUserId(), budgetId, name);
+        return ResponseEntity.noContent().build();
+    }
+
+    // =========================================================================
+    // POST /transactions
+    // =========================================================================
+
+    @Operation(
+            summary = "Log a manual spending transaction",
+            description = """
+                    Records a single manual expenditure against an existing budget category.
+
+                    **Effect:**
+                    1. Creates a row in the `transactions` table.
+                    2. Increments `budget_categories.spent_amount` by the supplied `amount`.
+                    3. The next `GET /current` will reflect the updated `spentAmount`, `remaining`,
+                       `totalSpent`, `totalRemaining`, and `safeToSpendPerDay`.
+
+                    The budget UUID and category name are provided in the request body.
+                    Category name is matched case-insensitively and must already exist in the budget.
+
+                    **Ownership required:** the authenticated user must own the target budget.
+                    """
+    )
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Transaction logged and category spend updated. No body returned.", content = @Content),
+            @ApiResponse(responseCode = "400", description = "Request body fails validation.",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
+                            examples = @ExampleObject(value = """
+                                    {"status":400,"error":"Bad Request","message":"amount must be positive","path":"/api/v1/budgets/transactions","timestamp":"2026-05-16T12:00:00Z"}
+                                    """))),
+            @ApiResponse(responseCode = "401", description = "No valid Bearer token provided.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "403", description = "Authenticated user does not own the referenced budget.",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
+                            examples = @ExampleObject(value = """
+                                    {"status":403,"error":"Forbidden","message":"You do not have permission to modify this budget","path":"/api/v1/budgets/transactions","timestamp":"2026-05-16T12:00:00Z"}
+                                    """))),
+            @ApiResponse(responseCode = "404", description = "Budget or category not found.",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
+                            examples = @ExampleObject(value = """
+                                    {"status":404,"error":"Not Found","message":"Category 'GYM' not found in budget b1e2f3a4-5678-90ab-cdef-000000000001","path":"/api/v1/budgets/transactions","timestamp":"2026-05-16T12:00:00Z"}
+                                    """)))
+    })
+    @PostMapping("/transactions")
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public ResponseEntity<Void> logManualTransaction(
+            @io.swagger.v3.oas.annotations.parameters.RequestBody(
+                    required = true,
+                    description = "Transaction details including the target budget, category, amount, and an optional description.",
+                    content = @Content(
+                            schema = @Schema(implementation = ManualTransactionRequestDto.class),
+                            examples = {
+                                    @ExampleObject(name = "Weekly grocery run",
+                                            value = """
+                                                    {
+                                                      "budgetId":     "b1e2f3a4-5678-90ab-cdef-000000000001",
+                                                      "categoryName": "FOOD",
+                                                      "amount":       94.30,
+                                                      "description":  "Kaufland — weekly groceries"
+                                                    }
+                                                    """),
+                                    @ExampleObject(name = "Bus pass top-up",
+                                            value = """
+                                                    {
+                                                      "budgetId":     "b1e2f3a4-5678-90ab-cdef-000000000001",
+                                                      "categoryName": "TRANSPORT",
+                                                      "amount":       70.00,
+                                                      "description":  "STB monthly pass"
+                                                    }
+                                                    """)
+                            }
+                    )
+            )
+            @Valid @RequestBody ManualTransactionRequestDto dto,
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        budgetService.logManualTransaction(userDetails.getUserId(), dto);
+        return ResponseEntity.noContent().build();
+    }
+
+    // =========================================================================
+    // POST /{budgetId}/upload-statement
+    // =========================================================================
+
+    @Operation(
+            summary = "Upload and parse a bank statement CSV",
+            description = """
+                    Accepts a Revolut or ING CSV bank statement upload, keyword-routes each
+                    debit row to a budget category, persists matched transactions, and returns
+                    a per-row result list.
+
+                    ## Supported CSV formats
+                    The parser auto-detects column positions from the header row.
+                    Supported header tokens (case-insensitive):
+                    | Column type | Accepted header tokens |
+                    |---|---|
+                    | Description | `Description`, `Descriere`, `Merchant`, `Beneficiar`, `Narration`, `Details` |
+                    | Amount | `Amount`, `Money Out`, `Debit`, `Suma`, `Withdrawal`, `Out` |
+
+                    Quoted fields containing commas are handled correctly.
+                    Income rows (zero or credit amounts) are silently skipped.
+
+                    ## Keyword routing rules
+                    | Keyword (substring, case-insensitive) | Category |
+                    |---|---|
+                    | kaufland, lidl, auchan, carrefour, mega image, glovo, bolt food, restaurant | FOOD |
+                    | uber, bolt, stb, ratb, metrorex, petrom, omv, parking | TRANSPORT |
+                    | chirie, rent, utilit, enel, romgaz, rcs, digi, orange, vodafone | HOUSING |
+                    | farmaci, sensiblu, cosmet, salon | PERSONAL |
+                    | cinema, netflix, spotify, hbo, club, bilet | LEISURE |
+                    | librarie, papetarie, xerox | SUPPLIES |
+                    | *(no match)* | PERSONAL (fallback) |
+
+                    ## Persistence
+                    A row is persisted only if the detected category already exists in the budget
+                    (`persisted = true`). Unmatched categories appear in the response with
+                    `persisted = false` — add the category via `PUT /{budgetId}/categories` and
+                    re-upload to capture those rows.
+
+                    **Ownership required:** the authenticated user must own this budget.
+
+                    **Content-Type:** `multipart/form-data`, field name `file`.
+                    """
     )
     @ApiResponses({
             @ApiResponse(
                     responseCode = "200",
-                    description = "Plan recomputed and returned. Category amounts reflect the profile state at the time of this call.",
+                    description = "File parsed successfully. Returns one entry per debit row found.",
                     content = @Content(
                             mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = BudgetPlanResponseDto.class),
+                            array = @ArraySchema(schema = @Schema(implementation = ParsedTransactionDto.class)),
                             examples = @ExampleObject(
-                                    name = "Student in dorm, eating in canteen, bi-weekly package",
+                                    name = "Revolut export — 3 rows parsed",
                                     value = """
-                                            {
-                                              "planId": "c3d4e5f6-1234-5678-abcd-000000000001",
-                                              "userId": "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-                                              "monthlyBudget": 900.00,
-                                              "fixedTotal": 0.00,
-                                              "disposable": 900.00,
-                                              "categories": [
-                                                { "category": "FOOD",      "amount": 315.00 },
-                                                { "category": "HOUSING",   "amount": 36.00  },
-                                                { "category": "LEISURE",   "amount": 90.00  },
-                                                { "category": "PERSONAL",  "amount": 90.00  },
-                                                { "category": "SAVINGS",   "amount": 135.00 },
-                                                { "category": "SUPPLIES",  "amount": 72.00  },
-                                                { "category": "TRANSPORT", "amount": 162.00 }
-                                              ],
-                                              "fixedExpenses": [],
-                                              "updatedAt": "2026-05-16T11:30:00Z"
-                                            }
+                                            [
+                                              { "description": "KAUFLAND IASI 2",     "amount": 94.32, "detectedCategory": "FOOD",      "persisted": true  },
+                                              { "description": "UBER TRIP HELP",       "amount": 14.80, "detectedCategory": "TRANSPORT", "persisted": true  },
+                                              { "description": "GYM WORLD CLASS IASI", "amount": 80.00, "detectedCategory": "PERSONAL",  "persisted": false }
+                                            ]
                                             """
                             )
                     )
             ),
-            @ApiResponse(
-                    responseCode = "401",
-                    description = "No valid Bearer token was provided",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ApiError.class),
+            @ApiResponse(responseCode = "400", description = "File is missing, empty, or cannot be parsed.",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
                             examples = @ExampleObject(value = """
-                                    { "status": 401, "error": "Unauthorized", "message": "Full authentication is required" }
-                                    """)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "403",
-                    description = "The authenticated user is neither the plan owner nor an ADMIN",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ApiError.class),
+                                    {"status":400,"error":"Bad Request","message":"Failed to read bank statement: Stream closed","path":"/api/v1/budgets/b1e2f3a4-5678-90ab-cdef-000000000001/upload-statement","timestamp":"2026-05-16T12:00:00Z"}
+                                    """))),
+            @ApiResponse(responseCode = "401", description = "No valid Bearer token provided.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class))),
+            @ApiResponse(responseCode = "403", description = "Authenticated user does not own this budget.",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
                             examples = @ExampleObject(value = """
-                                    { "status": 403, "error": "Forbidden", "message": "Access denied" }
-                                    """)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "404",
-                    description = "The user has no financial profile — they must complete onboarding first",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ApiError.class),
+                                    {"status":403,"error":"Forbidden","message":"You do not have permission to modify this budget","path":"/api/v1/budgets/b1e2f3a4-5678-90ab-cdef-000000000001/upload-statement","timestamp":"2026-05-16T12:00:00Z"}
+                                    """))),
+            @ApiResponse(responseCode = "404", description = "Budget not found.",
+                    content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
                             examples = @ExampleObject(value = """
-                                    { "status": 404, "error": "Not Found", "message": "No profile found for user: 3fa85f64-5717-4562-b3fc-2c963f66afa6" }
-                                    """)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Unexpected server error",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ApiError.class)
-                    )
-            )
+                                    {"status":404,"error":"Not Found","message":"Budget not found: b1e2f3a4-5678-90ab-cdef-000000000001","path":"/api/v1/budgets/b1e2f3a4-5678-90ab-cdef-000000000001/upload-statement","timestamp":"2026-05-16T12:00:00Z"}
+                                    """)))
     })
-    @PostMapping("/{userId}/recompute")
-    @PreAuthorize("#userId == authentication.principal.user.id or hasRole('ADMIN')")
-    public ResponseEntity<BudgetPlanResponseDto> recompute(
+    @PostMapping(value = "/{budgetId}/upload-statement", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public ResponseEntity<List<ParsedTransactionDto>> uploadStatement(
             @Parameter(
-                    description = "UUID of the user whose plan to recompute. Must match the authenticated user's ID unless the caller is an ADMIN.",
-                    example = "3fa85f64-5717-4562-b3fc-2c963f66afa6",
-                    required = true
+                    name = "budgetId",
+                    in = ParameterIn.PATH,
+                    description = "UUID of the monthly budget to charge parsed transactions against.",
+                    required = true,
+                    example = "b1e2f3a4-5678-90ab-cdef-000000000001",
+                    schema = @Schema(type = "string", format = "uuid")
             )
-            @PathVariable UUID userId) {
-        return ResponseEntity.ok(budgetService.recompute(userId));
+            @PathVariable UUID budgetId,
+
+            @Parameter(
+                    name = "file",
+                    in = ParameterIn.QUERY,
+                    description = "CSV bank statement file (UTF-8 encoded). Revolut and ING export formats are supported.",
+                    required = true,
+                    schema = @Schema(type = "string", format = "binary")
+            )
+            @RequestParam("file") MultipartFile file,
+
+            @AuthenticationPrincipal CustomUserDetails userDetails
+    ) {
+        return ResponseEntity.ok(budgetService.parseBankStatement(userDetails.getUserId(), budgetId, file));
     }
 }

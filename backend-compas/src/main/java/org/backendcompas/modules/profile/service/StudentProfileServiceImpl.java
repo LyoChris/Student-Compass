@@ -4,7 +4,6 @@ import lombok.RequiredArgsConstructor;
 import org.backendcompas.core.exception.BadRequestException;
 import org.backendcompas.core.exception.NotFoundException;
 import org.backendcompas.modules.account.repository.UserRepository;
-import org.backendcompas.modules.budget.service.BudgetService;
 import org.backendcompas.modules.profile.dto.FixedExpenseDto;
 import org.backendcompas.modules.profile.dto.FixedExpenseRequestDto;
 import org.backendcompas.modules.profile.dto.StudentProfileRequestDto;
@@ -27,7 +26,6 @@ public class StudentProfileServiceImpl implements StudentProfileService {
     private final StudentProfileRepository profileRepository;
     private final UserRepository userRepository;
     private final DormRepository dormRepository;
-    private final BudgetService budgetService;
 
     @Override
     public StudentProfileResponseDto getProfile(UUID userId) {
@@ -72,7 +70,6 @@ public class StudentProfileServiceImpl implements StudentProfileService {
         profile.getFixedExpenses().addAll(expenses);
 
         profileRepository.save(profile);
-        budgetService.recompute(userId);
 
         return new UpsertResult(toDto(profile), isNew);
     }
