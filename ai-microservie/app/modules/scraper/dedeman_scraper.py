@@ -1,8 +1,8 @@
 # Student-Compass/ai-microservie/app/modules/scraper/dedeman_scraper.py
 
 from bs4 import BeautifulSoup
-from core.scraper.http_client import get_html
-from core.scraper.text_utils import clean_text, parse_price
+from app.core.scraper.http_client import get_html
+from app.core.scraper.text_utils import clean_text, parse_price
 from urllib.parse import urljoin
 
 SHOP_NAME = "Dedeman"

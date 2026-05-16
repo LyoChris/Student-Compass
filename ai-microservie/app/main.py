@@ -2,7 +2,7 @@
 
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api.scraper.scraper import router as scraping_router
+from app.api.scraper.scraper import router as scraping_router
 
 app = FastAPI(
     title="Python Scraper Service",

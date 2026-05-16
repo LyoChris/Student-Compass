@@ -3,7 +3,7 @@
 from fastapi import APIRouter, HTTPException
 from typing import List
 from pydantic import BaseModel, Field, HttpUrl
-from services.scraper_service import run_scraping_job
+from app.services.scraper_service import run_scraping_job
 
 router = APIRouter(
     prefix="/api",
