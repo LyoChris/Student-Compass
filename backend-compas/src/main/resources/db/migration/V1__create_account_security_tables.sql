@@ -19,7 +19,6 @@ CREATE TABLE users (
     last_name VARCHAR(120) NOT NULL,
     role VARCHAR(40) NOT NULL,
     status VARCHAR(40) NOT NULL,
-    lister_approval_status VARCHAR(40) NOT NULL,
     city_id UUID NOT NULL,
     faculty_id UUID NOT NULL,
     failed_login_attempts INTEGER NOT NULL DEFAULT 0,
