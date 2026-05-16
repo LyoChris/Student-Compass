@@ -16,7 +16,8 @@ public class CorsConfig {
         configuration.setAllowedOrigins(List.of(
                 "https://student-compass-e98c.onrender.com",
                 "http://localhost:8081",
-                "https://student-compass-3mdrpsur3-lyoch-s-projects.vercel.app"
+                "https://student-compass-3mdrpsur3-lyoch-s-projects.vercel.app",
+                "https://student-compass-rho.vercel.app/register"
         ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
