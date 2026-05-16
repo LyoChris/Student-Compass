@@ -26,12 +26,10 @@ class ScrapeRequest(BaseModel):
 class ScrapeResponse(BaseModel):
     status: str = Field(..., description="Status of the scraping job (success, partial_success, failed)")
     productsCount: int = Field(..., description="Number of products scraped")
-    csvFileName: str = Field(None, description="Name of the generated CSV file")
-    csvBase64: str = Field(None, description="Base64 encoded CSV contents")
     errors: List[str] = Field([], description="List of errors for failed sources")
 
 # POST endpoint to trigger a scraping job
-@router.post("/scraping-jobs", response_model=ScrapeResponse, summary="Trigger a scraping job", description="Trigger scraping for one or more predefined category sources and return results as CSV in Base64.")
+@router.post("/scraping-jobs", response_model=ScrapeResponse, summary="Trigger a scraping job", description="Trigger scraping for one or more predefined category sources and save results to categorized CSV files in the data directory.")
 def create_scraping_job(request: ScrapeRequest):
     """
     Trigger a new scraping job for selected sources.

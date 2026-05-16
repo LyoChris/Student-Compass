@@ -1,12 +1,9 @@
 # services/scraper_service.py
 
-import csv
-import io
-import base64
 from typing import List, Dict
-from datetime import datetime
 
 from modules.scraper import auchan_scraper, dedeman_scraper, emag_scraper
+from app.core.scraper.storage import save_products_to_csv
 
 # Map scraperType to function
 SCRAPER_DISPATCHER = {
@@ -52,31 +49,14 @@ def run_scraping_job(request) -> Dict:
         return {
             "status": "failed",
             "productsCount": 0,
-            "csvBase64": None,
             "errors": errors
         }
 
-    # Generate CSV in memory
-    output = io.StringIO()
-    fieldnames = [
-        "category_name", "position", "id", "name", "description", "brand",
-        "sku", "mpn", "price_ron", "low_price_ron", "high_price_ron",
-        "currency", "availability", "image_url", "product_url",
-        "shop_name", "city", "category_url"
-    ]
-    writer = csv.DictWriter(output, fieldnames=fieldnames, extrasaction='ignore')
-    writer.writeheader()
-    for p in all_products:
-        writer.writerow(p)
-
-    csv_bytes = output.getvalue().encode("utf-8")
-    csv_base64 = base64.b64encode(csv_bytes).decode("utf-8")
-    csv_filename = f"scraped_products_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+    if all_products:
+        save_products_to_csv(all_products)
 
     return {
         "status": "success" if not errors else "partial_success",
         "productsCount": len(all_products),
-        "csvFileName": csv_filename,
-        "csvBase64": csv_base64,
         "errors": errors
     }
