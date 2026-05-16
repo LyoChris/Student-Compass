@@ -13,7 +13,11 @@ public class CorsConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("https://student-compass-e98c.onrender.com"));
+        configuration.setAllowedOrigins(List.of(
+                "https://student-compass-e98c.onrender.com",
+                "http://localhost:8081",
+                "https://student-compass-3mdrpsur3-lyoch-s-projects.vercel.app"
+        ));
         configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
         configuration.setAllowedHeaders(List.of("*"));
         configuration.setAllowCredentials(true);
