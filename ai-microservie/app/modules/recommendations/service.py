@@ -81,6 +81,16 @@ def _item(p: ProductRow, reason: str) -> RecommendationItem:
     )
 
 
+def _fallback_reason(p: ProductRow, needed: set[str]) -> str:
+    bits: list[str] = []
+    if p.category in needed:
+        bits.append(f"matches your {p.category.lower()} needs")
+    if p.is_partner:
+        bits.append("from a partner store")
+    bits.append(f"priced at {p.price:.2f}")
+    return "Recommended — " + ", ".join(bits) + "."
+
+
 def _fallback(
     profile: ProfileRow, products: list[ProductRow]
 ) -> list[RecommendationItem]:
@@ -93,8 +103,10 @@ def _fallback(
             p.price,
         ),
     )
-    reason = "Matches your profile (category fit, partner store, lower price)."
-    return [_item(p, reason) for p in ranked[:MAX_RESULTS]]
+    return [
+        _item(p, _fallback_reason(p, needed))
+        for p in ranked[:MAX_RESULTS]
+    ]
 
 
 async def build_recommendations(
@@ -106,8 +118,13 @@ async def build_recommendations(
     except OllamaUnavailable:
         return _fallback(profile, products), "fallback"
 
+    recs = data.get("recommendations", [])
+    if not isinstance(recs, list):
+        recs = []
     picked: list[RecommendationItem] = []
-    for entry in data.get("recommendations", []):
+    for entry in recs:
+        if not isinstance(entry, dict):
+            continue
         pid = str(entry.get("productId", ""))
         product = by_id.get(pid)
         if product is None:

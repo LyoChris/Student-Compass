@@ -61,3 +61,29 @@ async def test_fallback_when_ollama_unavailable():
     assert items[0].productId == "p2"  # FURNITURE, partner
     assert "p1" in [i.productId for i in items]  # FOOD
     assert all(i.reason for i in items)
+
+
+@pytest.mark.asyncio
+async def test_malformed_recommendations_not_a_list_falls_back():
+    ollama = FakeOllama(result={"recommendations": "oops"})
+    items, source = await build_recommendations(PROFILE, PRODUCTS, ollama)
+    assert source == "fallback"
+    assert items  # non-empty deterministic result
+
+
+@pytest.mark.asyncio
+async def test_non_dict_entries_are_skipped():
+    ollama = FakeOllama(result={"recommendations": ["junk", {"productId": "p1", "reason": "ok"}]})
+    items, source = await build_recommendations(PROFILE, PRODUCTS, ollama)
+    assert source == "llm"
+    assert [i.productId for i in items] == ["p1"]
+
+
+@pytest.mark.asyncio
+async def test_fallback_reasons_are_per_item():
+    ollama = FakeOllama(fail=True)
+    items, source = await build_recommendations(PROFILE, PRODUCTS, ollama)
+    assert source == "fallback"
+    reasons = [i.reason for i in items]
+    assert all(r for r in reasons)
+    assert len(set(reasons)) > 1  # not one boilerplate string for all
