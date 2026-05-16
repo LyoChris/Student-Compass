@@ -35,7 +35,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -60,14 +59,12 @@ public class MarketplaceController {
         summary = "Create a marketplace listing",
         description = "Creates a new student marketplace listing. The backend assigns status ACTIVE and isBoosted false regardless of client input."
     )
-    @ApiResponses({
-        @ApiResponse(responseCode = "201", description = "Listing created successfully",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ItemResponseDto.class))),
-        @ApiResponse(responseCode = "400", description = "Validation error in the create payload",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-        @ApiResponse(responseCode = "401", description = "Authentication is missing or invalid",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
-    })
+    @ApiResponse(responseCode = "201", description = "Listing created successfully",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ItemResponseDto.class)))
+    @ApiResponse(responseCode = "400", description = "Validation error in the create payload",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Authentication is missing or invalid",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ItemResponseDto> createItem(
         @io.swagger.v3.oas.annotations.parameters.RequestBody(
@@ -107,12 +104,10 @@ public class MarketplaceController {
             @Parameter(name = "sort", in = ParameterIn.QUERY, description = "Secondary sort applied after isBoosted DESC. Example values: price,asc or createdAt,desc.", example = "price,asc", schema = @Schema(type = "string"))
         }
     )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Listings fetched successfully",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PagedMarketplaceResponse.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid filter, enum, pagination, or sort parameter",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
-    })
+    @ApiResponse(responseCode = "200", description = "Listings fetched successfully",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PagedMarketplaceResponse.class)))
+    @ApiResponse(responseCode = "400", description = "Invalid filter, enum, pagination, or sort parameter",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     @GetMapping
     public ResponseEntity<PagedMarketplaceResponse> searchActiveItems(
         @Parameter(
@@ -173,12 +168,10 @@ public class MarketplaceController {
         summary = "Get marketplace listing details",
         description = "Fetches a single marketplace listing by UUID, including tags, Cloudinary image URLs, enum values, boost state, and audit timestamps."
     )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Listing found",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ItemResponseDto.class))),
-        @ApiResponse(responseCode = "404", description = "Listing not found",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
-    })
+    @ApiResponse(responseCode = "200", description = "Listing found",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ItemResponseDto.class)))
+    @ApiResponse(responseCode = "404", description = "Listing not found",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     @GetMapping("/{id}")
     public ResponseEntity<ItemResponseDto> getItem(
         @Parameter(
@@ -198,14 +191,12 @@ public class MarketplaceController {
         summary = "Update a marketplace listing",
         description = "Partially updates mutable listing fields. Null fields are ignored; provided tags or imageUrls replace the existing collection."
     )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Listing updated successfully",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ItemResponseDto.class))),
-        @ApiResponse(responseCode = "400", description = "Validation error in the update payload",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-        @ApiResponse(responseCode = "404", description = "Listing not found",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
-    })
+    @ApiResponse(responseCode = "200", description = "Listing updated successfully",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ItemResponseDto.class)))
+    @ApiResponse(responseCode = "400", description = "Validation error in the update payload",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "404", description = "Listing not found",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ItemResponseDto> updateItem(
         @Parameter(
@@ -245,14 +236,12 @@ public class MarketplaceController {
         summary = "Change marketplace listing status",
         description = "Changes the lifecycle status of a listing using the strict ItemStatus enum. Use RESERVED for an item held for a buyer, SOLD after purchase, INACTIVE to hide it, or ACTIVE to relist it."
     )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Status changed successfully",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ItemResponseDto.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid status enum value",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-        @ApiResponse(responseCode = "404", description = "Listing not found",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
-    })
+    @ApiResponse(responseCode = "200", description = "Status changed successfully",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ItemResponseDto.class)))
+    @ApiResponse(responseCode = "400", description = "Invalid status enum value",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "404", description = "Listing not found",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     @PatchMapping("/{id}/status")
     public ResponseEntity<ItemResponseDto> changeStatus(
         @Parameter(
@@ -282,12 +271,10 @@ public class MarketplaceController {
         summary = "Boost a marketplace listing",
         description = "Marks a listing as boosted after a premium visibility action. Boosted listings are always sorted before non-boosted listings in the GET marketplace feed."
     )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Listing boosted successfully",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ItemResponseDto.class))),
-        @ApiResponse(responseCode = "404", description = "Listing not found",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
-    })
+    @ApiResponse(responseCode = "200", description = "Listing boosted successfully",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ItemResponseDto.class)))
+    @ApiResponse(responseCode = "404", description = "Listing not found",
+        content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     @PatchMapping("/{id}/boost")
     public ResponseEntity<ItemResponseDto> boostItem(
         @Parameter(
