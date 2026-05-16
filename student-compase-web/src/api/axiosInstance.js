@@ -1,7 +1,7 @@
 import axios from 'axios'
 
 const api = axios.create({
-  baseURL: '',
+  baseURL: import.meta.env.VITE_API_BASE_URL || '',
   withCredentials: true,          // carry HttpOnly refresh_token cookie
   xsrfCookieName: 'XSRF-TOKEN',  // read from cookie…
   xsrfHeaderName: 'X-XSRF-TOKEN', // …send in this header (CSRF protection)
