@@ -24,6 +24,10 @@ export const budgetApi = {
       description,
     }),
 
+  // ── Today's spend ──────────────────────────────────────────────────────────
+  getSpendToday: () =>
+    api.get('/api/v1/budgets/spend-today'),
+
   // ── CSV upload ──────────────────────────────────────────────────────────────
   uploadStatement: (budgetId, file) => {
     const form = new FormData()

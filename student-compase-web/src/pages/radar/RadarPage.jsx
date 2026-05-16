@@ -1,10 +1,5 @@
-import { MapPin, Navigation } from 'lucide-react'
+import { MapPin, Radar } from 'lucide-react'
 import AppShell from '../../components/layout/AppShell'
-
-const MOCK_DEALS = [
-  { id: 1, name: 'Cantina Universitatii', discount: '-30%', type: 'Food',    distance: '50 m',  dotColor: 'bg-green-500/20', textColor: 'text-green-400'  },
-  { id: 2, name: 'Xerox & Print Hub',     discount: '-15%', type: 'Service', distance: '120 m', dotColor: 'bg-blue-500/20',  textColor: 'text-blue-400'   },
-]
 
 export default function RadarPage() {
   return (
@@ -15,9 +10,9 @@ export default function RadarPage() {
             <h1 className="text-2xl font-black text-slate-100 tracking-tight">Radar</h1>
             <p className="text-slate-500 text-sm">Student deals near you</p>
           </div>
-          <button className="flex items-center gap-2 px-4 py-2 rounded-2xl glass-card text-green-400 text-sm font-bold border-green-500/30 hover:bg-green-500/10">
-            <Navigation size={15} /> Update
-          </button>
+          <div className="w-10 h-10 rounded-2xl bg-green-500/20 flex items-center justify-center">
+            <MapPin size={18} className="text-green-400" />
+          </div>
         </div>
 
         <div className="glass-card rounded-3xl overflow-hidden" style={{ height: '200px' }}>
@@ -27,29 +22,18 @@ export default function RadarPage() {
           </div>
         </div>
 
-        <div className="glass-card rounded-3xl p-5">
-          <p className="text-slate-100 font-bold text-sm mb-4">Nearby Deals</p>
-          <div className="space-y-2">
-            {MOCK_DEALS.map((deal) => (
-              <div key={deal.id} className="flex items-center justify-between p-3 rounded-2xl bg-slate-700/50 hover:bg-slate-700 cursor-pointer active:scale-[0.98]">
-                <div className="flex items-center gap-3">
-                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 ${deal.dotColor}`}>
-                    <MapPin size={16} className={deal.textColor} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-slate-100 leading-tight">{deal.name}</p>
-                    <p className="text-xs text-slate-500 mt-0.5">{deal.type} · {deal.distance}</p>
-                  </div>
-                </div>
-                <span className={`text-sm font-black flex-shrink-0 ml-3 ${deal.textColor}`}>{deal.discount}</span>
-              </div>
-            ))}
+        <div className="glass-card rounded-3xl p-10 flex flex-col items-center justify-center text-center gap-4">
+          <div className="w-16 h-16 rounded-2xl bg-green-500/15 flex items-center justify-center">
+            <Radar size={28} className="text-green-400" />
           </div>
-        </div>
-
-        <div className="glass-card rounded-3xl p-6 text-center">
+          <div>
+            <h2 className="text-lg font-black text-slate-100 mb-1">Radar is in development</h2>
+            <p className="text-slate-500 text-sm leading-relaxed max-w-xs">
+              Location-based student discounts and nearby campus deals will appear here once the feature launches.
+            </p>
+          </div>
           <span className="text-xs font-bold px-3 py-1.5 rounded-full bg-green-500/20 text-green-400">
-            GPS + full deal list in development
+            GPS + deal feed coming soon
           </span>
         </div>
       </div>

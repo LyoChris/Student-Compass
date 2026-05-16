@@ -66,28 +66,39 @@ function S2SCard({ value, loading }) {
       <Sk className="h-3 w-24 mx-auto" />
     </div>
   )
-  const v = Number(value ?? 0)
-  const safe   = v >= 15
-  const warn   = v >= 5 && v < 15
-  const color  = safe ? 'text-emerald-300' : warn ? 'text-amber-300' : 'text-rose-400'
-  const glow   = safe
-    ? 'shadow-[0_0_48px_rgba(16,185,129,0.25)]'
-    : warn
-    ? 'shadow-[0_0_48px_rgba(251,191,36,0.2)]'
-    : 'shadow-[0_0_48px_rgba(244,63,94,0.25)]'
-  const badge  = safe
-    ? 'bg-emerald-500/15 text-emerald-300 border-emerald-400/25'
-    : warn
-    ? 'bg-amber-500/15 text-amber-300 border-amber-400/25'
-    : 'bg-rose-500/15 text-rose-300 border-rose-400/25'
+
+  const v       = parseFloat(value ?? 0)
+  const display = v.toFixed(2)
+
+  const isGreen  = v >= 25
+  const isAmber  = v >= 10 && v < 25
+  // isRed covers both < 10 and exactly 0
+
+  const color = isGreen ? 'text-emerald-400' : isAmber ? 'text-amber-400' : 'text-rose-500'
+
+  const glow  = isGreen
+    ? 'shadow-[0_0_52px_rgba(16,185,129,0.30)]'
+    : isAmber
+    ? 'shadow-[0_0_52px_rgba(251,191,36,0.25)]'
+    : 'shadow-[0_0_52px_rgba(244,63,94,0.35)] animate-pulse'
+
+  const badge = isGreen
+    ? 'bg-emerald-500/15 text-emerald-400 border-emerald-400/30'
+    : isAmber
+    ? 'bg-amber-500/15  text-amber-400  border-amber-400/30'
+    : 'bg-rose-500/15   text-rose-400   border-rose-500/40'
+
+  const label = isGreen ? 'You are good!' : isAmber ? 'Spend carefully' : v === 0 ? 'Budget exhausted' : 'Critical — slow down'
 
   return (
     <div className={`glass-card rounded-3xl p-6 flex flex-col items-center justify-center text-center ${glow}`}>
       <p className="text-slate-400 text-xs font-semibold uppercase tracking-wider mb-3">Safe to Spend Today</p>
-      <p className={`text-6xl font-black tabular-nums ${color} mb-1`}>{fmtRon(v)}</p>
+      <p className={`text-6xl font-black tabular-nums leading-none ${color} mb-1`}>
+        {display}
+      </p>
       <p className="text-slate-500 text-xs mb-3">RON / day</p>
       <span className={`inline-block rounded-full border px-3 py-1 text-[0.68rem] font-black uppercase tracking-wide ${badge}`}>
-        {safe ? 'You are good!' : warn ? 'Spend carefully' : 'Critical — slow down'}
+        {label}
       </span>
     </div>
   )
