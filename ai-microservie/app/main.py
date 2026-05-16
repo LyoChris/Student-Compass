@@ -1,12 +1,32 @@
+# main.py
+
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from api.scraper.scraper import router as scraping_router
 
-from app.api.v1.health import router as health_router
+app = FastAPI(
+    title="Python Scraper Service",
+    description="Service for scraping products from predefined shops and returning CSV as Base64",
+    version="1.0.0"
+)
 
+# CORS middleware - allow Spring Boot frontend to call the service
+origins = [
+    "*"  # For MVP; later restrict to Spring Boot host
+]
 
-def create_app() -> FastAPI:
-    app = FastAPI(title="Student Compass API", version="0.1.0")
-    app.include_router(health_router)
-    return app
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
+# Include the scraping router
+app.include_router(scraping_router)
 
-app = create_app()
+# Health check endpoint
+@app.get("/health", summary="Health check", description="Returns service status")
+def health_check():
+    return {"status": "ok"}
