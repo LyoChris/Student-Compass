@@ -27,9 +27,13 @@ public interface MarketplaceService {
 
     ItemResponseDto getItem(UUID id);
 
-    ItemResponseDto updateItem(UUID id, UpdateItemRequestDto request);
+    PagedMarketplaceResponse getMyItems(UUID sellerId, Pageable pageable);
 
-    ItemResponseDto changeStatus(UUID id, ItemStatus status);
+    ItemResponseDto updateItem(UUID id, UpdateItemRequestDto request, UUID currentUserId);
 
-    ItemResponseDto boostItem(UUID id);
+    ItemResponseDto changeStatus(UUID id, ItemStatus status, UUID currentUserId);
+
+    ItemResponseDto boostItem(UUID id, UUID currentUserId);
+
+    void deleteItem(UUID id, UUID currentUserId);
 }

@@ -12,13 +12,14 @@ import org.backendcompas.modules.ai.dto.ChatResponseDto;
 import org.backendcompas.modules.ai.model.ChatMessage;
 import org.backendcompas.modules.ai.model.ChatRole;
 import org.backendcompas.modules.ai.repository.ChatMessageRepository;
-import org.backendcompas.modules.budget.repository.BudgetPlanRepository;
+import org.backendcompas.modules.budget.repository.MonthlyBudgetRepository;
 import org.backendcompas.modules.profile.repository.StudentProfileRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -30,14 +31,17 @@ public class AiChatServiceImpl implements AiChatService {
 
     private final ChatMessageRepository chatMessageRepository;
     private final StudentProfileRepository profileRepository;
-    private final BudgetPlanRepository budgetPlanRepository;
+    private final MonthlyBudgetRepository monthlyBudgetRepository;
     private final AiClient aiClient;
 
     @Override
     @Transactional
     public ChatResponseDto chat(UUID userId, ChatRequestDto request) {
         Object profileContext = profileRepository.findById(userId).orElse(null);
-        Object planContext = budgetPlanRepository.findByUserId(userId).orElse(null);
+        LocalDate today = LocalDate.now();
+        Object planContext = monthlyBudgetRepository
+                .findByUserIdAndMonthAndYear(userId, today.getMonthValue(), today.getYear())
+                .orElse(null);
 
         List<ChatMessage> recent = chatMessageRepository.findTop20ByUserIdOrderByCreatedAtDesc(userId);
         Collections.reverse(recent);
