@@ -1,7 +1,7 @@
 services:
   db:
     image: postgres:15-alpine
-    container_name: tutor-db
+    container_name: student-db
     environment:
       POSTGRES_DB: student-compas
       POSTGRES_USER: user
@@ -12,7 +12,7 @@ services:
       # Mapam scriptul ca să creeze a doua bază de date la prima pornire
       - ./init-test-db.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U user -d adaptive_tutor"]
+      test: ["CMD-SHELL", "pg_isready -U user -d student-compas"]
       interval: 5s
       timeout: 5s
       retries: 5
