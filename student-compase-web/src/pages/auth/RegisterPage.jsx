@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Eye, EyeOff, AlertCircle, ChevronDown, CheckCircle2, Zap, ShoppingBag, MapPin, DollarSign, CreditCard, PiggyBank } from 'lucide-react'
+import { Eye, EyeOff, AlertCircle, ChevronDown, CheckCircle2, Zap, ShoppingBag, MapPin, DollarSign, CreditCard, PiggyBank, Phone } from 'lucide-react'
 import { useAuth } from '../../hooks/useAuth'
 import { useCatalog } from '../../hooks/useCatalog'
 
@@ -36,6 +36,7 @@ export default function RegisterPage() {
   const [form, setForm] = useState({
     firstName: '', lastName: '', email: '',
     password: '', confirmPassword: '', cityId: '', facultyId: '',
+    age: '', phoneNumber: '',
   })
   const [showPass, setShowPass]       = useState(false)
   const [showConfirm, setShowConfirm] = useState(false)
@@ -62,7 +63,15 @@ export default function RegisterPage() {
       setError('Passwords do not match. Please try again.')
       return
     }
-    const result = await register(form)
+    if (Number(form.age) < 18) {
+      setError('You must be at least 18 years old to create an account.')
+      return
+    }
+    const result = await register({
+      ...form,
+      age: Number(form.age),
+      phoneNumber: form.phoneNumber.trim(),
+    })
     if (result.success) navigate('/onboarding')
     else setError(result.error)
   }
@@ -148,6 +157,36 @@ export default function RegisterPage() {
             <InputField label="Email address">
               <input type="email" name="email" value={form.email} onChange={handleChange} required placeholder="ana.popescu@student.ro" className={INPUT_CLS} />
             </InputField>
+
+            <div className="grid grid-cols-2 gap-3">
+              <InputField label="Age">
+                <input
+                  type="number"
+                  name="age"
+                  value={form.age}
+                  onChange={handleChange}
+                  required
+                  min={18}
+                  inputMode="numeric"
+                  placeholder="18"
+                  className={INPUT_CLS}
+                />
+              </InputField>
+              <InputField label="Phone number">
+                <div className="relative">
+                  <input
+                    type="tel"
+                    name="phoneNumber"
+                    value={form.phoneNumber}
+                    onChange={handleChange}
+                    required
+                    placeholder="+40 712 345 678"
+                    className={`${INPUT_CLS} pl-11`}
+                  />
+                  <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+                </div>
+              </InputField>
+            </div>
 
             <InputField label="City">
               <div className="relative">

@@ -6,6 +6,7 @@ import {
   CheckCircle2,
   ImagePlus,
   Loader2,
+  Phone,
   Sparkles,
   Trash2,
   UploadCloud,
@@ -34,6 +35,7 @@ const initialForm = {
   price: '',
   category: 'BOOKS_NOTES',
   itemCondition: 'GOOD',
+  contactPhone: '',
 }
 
 const inputClass =
@@ -185,6 +187,7 @@ export default function CreateAdForm() {
         itemCondition: form.itemCondition,
         tags: [],
         imageUrls,
+        contactPhone: form.contactPhone.trim() || undefined,
       })
 
       setSuccess(true)
@@ -289,6 +292,24 @@ export default function CreateAdForm() {
               placeholder="Tell students what it is, condition, pickup area, and why it is useful."
               className={`${inputClass} resize-none`}
             />
+          </label>
+
+          <label className="block">
+            <span className="mb-2 block text-sm font-black text-slate-300">Contact phone (optional)</span>
+            <div className="relative">
+              <input
+                name="contactPhone"
+                type="tel"
+                value={form.contactPhone}
+                onChange={updateField}
+                placeholder="+40 712 345 678"
+                className={`${inputClass} pl-11`}
+              />
+              <Phone size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-500" />
+            </div>
+            <p className="mt-2 text-xs text-slate-500">
+              Leave blank to automatically use your registered account phone number.
+            </p>
           </label>
 
           <PillSelector

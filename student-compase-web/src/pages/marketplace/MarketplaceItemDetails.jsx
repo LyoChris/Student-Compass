@@ -5,6 +5,7 @@ import {
   Heart,
   ImageIcon,
   MessageCircle,
+  Phone,
   Share2,
   ShieldCheck,
   Tag,
@@ -155,6 +156,11 @@ export default function MarketplaceItemDetails() {
   const [saved, setSaved] = useState(false)
   const [contacted, setContacted] = useState(false)
 
+  const isMobile = useMemo(() => {
+    if (typeof navigator === 'undefined') return false
+    return /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)
+  }, [])
+
   useEffect(() => {
     let ignore = false
 
@@ -181,6 +187,19 @@ export default function MarketplaceItemDetails() {
 
   const images = useMemo(() => item?.imageUrls?.filter(Boolean) || [], [item])
   const safeActiveImage = Math.min(activeImage, Math.max(images.length - 1, 0))
+  const rawContactPhone = item?.contactPhone?.trim() || ''
+  const normalizedPhone = rawContactPhone.replace(/[^0-9]/g, '')
+  const hasContactPhone = Boolean(normalizedPhone)
+  const contactHref = hasContactPhone
+    ? isMobile
+      ? `tel:${rawContactPhone}`
+      : `https://wa.me/${normalizedPhone}`
+    : ''
+  const contactLabel = hasContactPhone
+    ? isMobile
+      ? 'Call Seller'
+      : 'WhatsApp Seller'
+    : 'Contact Seller'
 
   if (loading) return <DetailSkeleton />
 
@@ -305,14 +324,27 @@ export default function MarketplaceItemDetails() {
           >
             <Heart size={21} fill={saved ? 'currentColor' : 'none'} />
           </button>
-          <button
-            type="button"
-            onClick={() => setContacted(true)}
-            className="flex min-h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-purple-500 px-5 py-3 text-sm font-black text-white shadow-[0_0_32px_rgba(168,85,247,0.45)] hover:bg-purple-400"
-          >
-            <MessageCircle size={19} />
-            Contact Seller
-          </button>
+          {hasContactPhone ? (
+            <a
+              href={contactHref}
+              target={isMobile ? undefined : '_blank'}
+              rel={isMobile ? undefined : 'noreferrer'}
+              className="flex min-h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-purple-500 px-5 py-3 text-sm font-black text-white shadow-[0_0_32px_rgba(168,85,247,0.45)] hover:bg-purple-400"
+            >
+              {isMobile ? <Phone size={19} /> : <MessageCircle size={19} />}
+              {contactLabel}
+            </a>
+          ) : (
+            <button
+              type="button"
+              onClick={() => setContacted(true)}
+              className="flex min-h-14 flex-1 items-center justify-center gap-2 rounded-2xl bg-purple-500/50 px-5 py-3 text-sm font-black text-white/80"
+              aria-disabled="true"
+            >
+              <MessageCircle size={19} />
+              {contactLabel}
+            </button>
+          )}
         </div>
       </div>
     </div>
