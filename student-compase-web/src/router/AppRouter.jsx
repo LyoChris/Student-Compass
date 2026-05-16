@@ -17,6 +17,8 @@ import AIChatPage       from '../pages/chat/AIChatPage'
 import RadarPage        from '../pages/radar/RadarPage'
 import OnboardingWizard from '../pages/onboarding/OnboardingWizard'
 import ProfilePage      from '../pages/profile/ProfilePage'
+import BudgetDashboard      from '../pages/budget/BudgetDashboard'
+import MyListingsDashboard  from '../pages/marketplace/MyListingsDashboard'
 
 function Guard({ children }) {
   return <ProtectedRoute>{children}</ProtectedRoute>
@@ -37,11 +39,13 @@ export default function AppRouter() {
           <Route path="/dashboard"  element={<Guard><DashboardPage /></Guard>}    />
           <Route path="/market"     element={<Guard><MarketplacePage /></Guard>}  />
           <Route path="/marketplace" element={<Guard><MarketplacePage /></Guard>} />
+          <Route path="/marketplace/me"   element={<Guard><MyListingsDashboard /></Guard>}                         />
           <Route path="/marketplace/sell" element={<Guard><AppShellRoute><CreateAdForm /></AppShellRoute></Guard>} />
           <Route path="/marketplace/:id" element={<Guard><AppShellRoute><MarketplaceItemDetails /></AppShellRoute></Guard>} />
           <Route path="/chat"       element={<Guard><AIChatPage /></Guard>}       />
           <Route path="/radar"      element={<Guard><RadarPage /></Guard>}        />
           <Route path="/profile"    element={<Guard><ProfilePage /></Guard>}      />
+          <Route path="/budget"     element={<Guard><BudgetDashboard /></Guard>}  />
 
           {/* Fallback */}
           <Route path="*" element={<Navigate to="/" replace />} />

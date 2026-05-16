@@ -1,13 +1,13 @@
-import { Home, MapPin, Plus, ShoppingBag, User } from 'lucide-react'
+import { Home, Wallet, Zap, User, Plus } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
 const leftItems = [
-  { to: '/dashboard', icon: Home, label: 'Home' },
-  { to: '/market', icon: ShoppingBag, label: 'Market' },
+  { to: '/dashboard', icon: Home,   label: 'Home'   },
+  { to: '/budget',    icon: Wallet, label: 'Budget' },
 ]
 
 const rightItems = [
-  { to: '/radar', icon: MapPin, label: 'Radar' },
+  { to: '/chat',    icon: Zap,  label: 'AI Chat' },
   { to: '/profile', icon: User, label: 'Profile' },
 ]
 

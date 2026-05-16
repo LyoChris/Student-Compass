@@ -1,11 +1,14 @@
-import { Home, ShoppingBag, MapPin, LogOut, Plus, User } from 'lucide-react'
+import { Home, ShoppingBag, MapPin, LogOut, Plus, User, Wallet, Zap, ListOrdered } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../../hooks/useAuth'
 
 const NAV_ITEMS = [
   { to: '/dashboard', icon: Home,          label: 'Home'        },
-  { to: '/market',    icon: ShoppingBag,   label: 'Marketplace' },
-  { to: '/marketplace/sell', icon: Plus,   label: 'Sell Item', featured: true },
+  { to: '/budget',    icon: Wallet,        label: 'Budget'      },
+  { to: '/chat',      icon: Zap,           label: 'AI Chat'     },
+  { to: '/market',          icon: ShoppingBag,  label: 'Marketplace'  },
+  { to: '/marketplace/me',  icon: ListOrdered,  label: 'My Listings'  },
+  { to: '/marketplace/sell', icon: Plus,        label: 'Sell Item', featured: true },
   { to: '/radar',     icon: MapPin,        label: 'Radar Deals' },
   { to: '/profile',   icon: User,          label: 'Profile'     },
 ]
