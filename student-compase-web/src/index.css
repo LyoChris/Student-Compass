@@ -48,6 +48,17 @@ body {
   border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
+/* ─── Radar map: dark tooltip override ─────────────────── */
+.radar-tooltip,
+.radar-tooltip::before {
+  background: rgba(15, 23, 42, 0.96) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  border-radius: 10px !important;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.5) !important;
+  color: #f1f5f9 !important;
+  padding: 8px 12px !important;
+}
+
 /* ─── Accent glow ───────────────────────────────────────── */
 .accent-glow {
   box-shadow:
