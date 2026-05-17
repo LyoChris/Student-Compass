@@ -202,7 +202,6 @@ public class MarketplaceController {
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PagedMarketplaceResponse.class)))
     @ApiResponse(responseCode = "401", description = "Authentication is missing or invalid",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
-    })
     @GetMapping("/me")
     public ResponseEntity<PagedMarketplaceResponse> getMyItems(
         @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -229,7 +228,6 @@ public class MarketplaceController {
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     @ApiResponse(responseCode = "404", description = "Listing not found",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
-    })
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<ItemResponseDto> updateItem(
         @Parameter(
@@ -284,7 +282,6 @@ public class MarketplaceController {
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     @ApiResponse(responseCode = "404", description = "Listing not found",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
-    })
     @PatchMapping("/{id}/status")
     public ResponseEntity<ItemResponseDto> changeStatus(
         @Parameter(

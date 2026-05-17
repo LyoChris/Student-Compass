@@ -3,13 +3,13 @@ package org.backendcompas.modules.marketplace.dto;
 import java.math.BigDecimal;
 import java.util.List;
 
-import org.backendcompas.core.validation.NullOrNotBlank;
 import org.backendcompas.modules.marketplace.model.ItemCategory;
 import org.backendcompas.modules.marketplace.model.ItemCondition;
 
 import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.AssertTrue;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
