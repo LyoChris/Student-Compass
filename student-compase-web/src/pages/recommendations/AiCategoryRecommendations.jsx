@@ -2,19 +2,16 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Sparkles, BadgeCheck, Brain, Target,
-  Coffee, ExternalLink, RefreshCw, Send, X, ChevronDown,
+  Coffee, RefreshCw, Send, X, ChevronDown,
 } from 'lucide-react'
 import AppShell from '../../components/layout/AppShell'
 import { recommendationsApi } from '../../api/recommendationsApi'
 
 // ── Categories ─────────────────────────────────────────────────────────────────
 const CATEGORIES = [
-  { value: '',       label: 'All Categories',  emoji: '✨' },
-  { value: 'FOOD',   label: 'Food',             emoji: '🍔' },
-  { value: 'HOME',   label: 'Home',             emoji: '🏠' },
-  { value: 'SOCIAL', label: 'Social',           emoji: '🎉' },
-  { value: 'TECH',   label: 'Tech',             emoji: '💻' },
-  { value: 'OTHER',  label: 'Other',            emoji: '🎁' },
+  { value: 'FOOD',        label: 'Food',        emoji: '🍔' },
+  { value: 'FURNITURE',   label: 'Furniture',   emoji: '🛋️' },
+  { value: 'ELECTRONICS', label: 'Electronics', emoji: '💻' },
 ]
 
 // ── Helpers ─────────────────────────────────────────────────────────────────────
@@ -171,17 +168,6 @@ function RecommendationCard({ item }) {
         </div>
       </div>
 
-      {/* Action */}
-      <div className="px-5 pb-5 pt-3">
-        <button
-          className="w-full flex items-center justify-center gap-2 rounded-2xl border border-white/10
-                     bg-white/5 px-4 py-2.5 text-sm font-black text-slate-200
-                     hover:border-purple-500/40 hover:bg-purple-500/10 hover:text-purple-200 transition-all"
-        >
-          <ExternalLink size={14} />
-          View Deal
-        </button>
-      </div>
     </article>
   )
 }
@@ -192,7 +178,7 @@ export default function AiCategoryRecommendations() {
   const navigate       = useNavigate()
 
   // Category field — pre-filled from ?category= URL param, freely editable
-  const urlCategory = searchParams.get('category') ?? ''
+  const urlCategory = searchParams.get('category') ?? 'FOOD'
   const [categoryInput, setCategoryInput] = useState(urlCategory)
   const [userNote,      setUserNote]      = useState('')
 
