@@ -2,12 +2,22 @@ import { useState, useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import {
   ArrowLeft, Sparkles, BadgeCheck, Brain, Target,
-  Coffee, ExternalLink, RefreshCw, Send, X,
+  Coffee, ExternalLink, RefreshCw, Send, X, ChevronDown,
 } from 'lucide-react'
 import AppShell from '../../components/layout/AppShell'
 import { recommendationsApi } from '../../api/recommendationsApi'
 
-// ── Helpers ────────────────────────────────────────────────────────────────────
+// ── Categories ─────────────────────────────────────────────────────────────────
+const CATEGORIES = [
+  { value: '',       label: 'All Categories',  emoji: '✨' },
+  { value: 'FOOD',   label: 'Food',             emoji: '🍔' },
+  { value: 'HOME',   label: 'Home',             emoji: '🏠' },
+  { value: 'SOCIAL', label: 'Social',           emoji: '🎉' },
+  { value: 'TECH',   label: 'Tech',             emoji: '💻' },
+  { value: 'OTHER',  label: 'Other',            emoji: '🎁' },
+]
+
+// ── Helpers ─────────────────────────────────────────────────────────────────────
 function fmtPrice(n) {
   return Number(n ?? 0).toFixed(2)
 }
@@ -106,7 +116,6 @@ function SourceBadge({ source }) {
     </span>
   )
 
-  // Fallback for unknown source values
   return (
     <span className="flex items-center gap-1.5 rounded-full border border-slate-600/40 bg-slate-700/30
                      px-3 py-1 text-[0.68rem] font-black text-slate-400">
@@ -179,21 +188,27 @@ function RecommendationCard({ item }) {
 
 // ── Page ───────────────────────────────────────────────────────────────────────
 export default function AiCategoryRecommendations() {
-  const [searchParams]          = useSearchParams()
-  const navigate                = useNavigate()
-  const category                = searchParams.get('category') ?? ''
+  const [searchParams] = useSearchParams()
+  const navigate       = useNavigate()
 
-  const [status,      setStatus]      = useState('loading')
-  const [data,        setData]        = useState(null)
-  const [userNote,    setUserNote]    = useState('')
-  const [appliedNote, setAppliedNote] = useState('')
+  // Category field — pre-filled from ?category= URL param, freely editable
+  const urlCategory = searchParams.get('category') ?? ''
+  const [categoryInput, setCategoryInput] = useState(urlCategory)
+  const [userNote,      setUserNote]      = useState('')
 
-  function fetchData(note = '') {
+  // Applied values (what was last sent to API)
+  const [appliedCategory, setAppliedCategory] = useState(urlCategory)
+  const [appliedNote,     setAppliedNote]     = useState('')
+
+  const [status, setStatus] = useState('loading')
+  const [data,   setData]   = useState(null)
+
+  function fetchData(cat, note) {
     setStatus('loading')
     setData(null)
     const params = {}
-    if (category) params.category = category
-    if (note)     params.userNote = note
+    if (cat)  params.category = cat.trim().toUpperCase()
+    if (note) params.userNote = note.trim()
     recommendationsApi.getRecommendations(params)
       .then(res => {
         setData(res.data)
@@ -202,19 +217,22 @@ export default function AiCategoryRecommendations() {
       .catch(() => setStatus('error'))
   }
 
-  useEffect(() => { fetchData('') }, [category]) // eslint-disable-line react-hooks/exhaustive-deps
+  // Initial load uses URL param
+  useEffect(() => {
+    fetchData(urlCategory, '')
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
-  function handleAskAI(e) {
+  function handleSubmit(e) {
     e.preventDefault()
+    const cat  = categoryInput.trim()
     const note = userNote.trim()
+    setAppliedCategory(cat)
     setAppliedNote(note)
-    fetchData(note)
+    fetchData(cat, note)
   }
 
-  function handleClear() {
+  function handleClearNote() {
     setUserNote('')
-    setAppliedNote('')
-    fetchData('')
   }
 
   const recs = data?.recommendations ?? []
@@ -241,8 +259,8 @@ export default function AiCategoryRecommendations() {
             >
               <span className="text-amber-400">✨</span>{' '}
               Smart Picks
-              {category && (
-                <span style={{ color: '#A855F7' }}> for {toLabel(category)}</span>
+              {appliedCategory && (
+                <span style={{ color: '#A855F7' }}> for {toLabel(appliedCategory)}</span>
               )}
             </h1>
             {status === 'success' && data?.source && (
@@ -257,52 +275,84 @@ export default function AiCategoryRecommendations() {
             <Brain size={13} className="text-purple-400 flex-shrink-0" />
             <p className="text-xs text-slate-400 leading-relaxed">
               Based on your remaining budget
-              {category ? ` for ${toLabel(category)}` : ''} and your profile habits.
+              {appliedCategory ? ` for ${toLabel(appliedCategory)}` : ''} and your profile habits.
             </p>
           </div>
 
-          {/* ── userNote input ── */}
-          <form onSubmit={handleAskAI} className="flex items-center gap-2">
+          {/* ── Two-field form ── */}
+          <form onSubmit={handleSubmit} className="space-y-2">
+
+            {/* Field 1 — Category dropdown */}
             <div
-              className="relative flex-1"
-              style={{ boxShadow: '0 0 16px rgba(168,85,247,0.1)' }}
+              className="relative"
+              style={{ boxShadow: '0 0 16px rgba(168,85,247,0.08)' }}
             >
-              <Sparkles
-                size={13}
-                className="absolute left-3.5 top-1/2 -translate-y-1/2 text-purple-400 pointer-events-none"
-              />
-              <input
-                type="text"
-                value={userNote}
-                onChange={e => setUserNote(e.target.value)}
-                placeholder="Any specific requests? (e.g., 'Vegan only', 'Under 50 RON')"
-                className="w-full rounded-2xl border border-white/10 bg-slate-800/70 backdrop-blur
-                           pl-9 pr-9 py-2.5 text-sm text-slate-200 placeholder-slate-500
+              <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-base pointer-events-none leading-none">
+                {CATEGORIES.find(c => c.value === categoryInput)?.emoji ?? '✨'}
+              </span>
+              <select
+                value={categoryInput}
+                onChange={e => setCategoryInput(e.target.value)}
+                className="w-full appearance-none rounded-2xl border border-white/10 bg-slate-800/70 backdrop-blur
+                           pl-9 pr-9 py-2.5 text-sm text-slate-200
                            focus:outline-none focus:border-purple-500/50 focus:bg-slate-800/90
-                           transition-all"
+                           transition-all cursor-pointer"
+              >
+                {CATEGORIES.map(c => (
+                  <option key={c.value} value={c.value} className="bg-slate-900 text-slate-200">
+                    {c.emoji} {c.label}
+                  </option>
+                ))}
+              </select>
+              <ChevronDown
+                size={13}
+                className="absolute right-3.5 top-1/2 -translate-y-1/2 text-purple-400 pointer-events-none"
               />
-              {userNote && (
-                <button
-                  type="button"
-                  onClick={handleClear}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
-                >
-                  <X size={13} />
-                </button>
-              )}
             </div>
-            <button
-              type="submit"
-              disabled={status === 'loading'}
-              className="flex items-center gap-1.5 rounded-2xl border border-purple-500/40 bg-purple-500/15
-                         px-4 py-2.5 text-sm font-black text-purple-300
-                         hover:bg-purple-500/25 hover:border-purple-400/60 hover:text-purple-200
-                         disabled:opacity-50 disabled:cursor-not-allowed transition-all"
-              style={{ boxShadow: '0 0 12px rgba(168,85,247,0.2)' }}
-            >
-              <Send size={13} />
-              Ask AI
-            </button>
+
+            {/* Field 2 — User note / specific request */}
+            <div className="flex items-center gap-2">
+              <div
+                className="relative flex-1"
+                style={{ boxShadow: '0 0 16px rgba(168,85,247,0.08)' }}
+              >
+                <Sparkles
+                  size={13}
+                  className="absolute left-3.5 top-1/2 -translate-y-1/2 text-purple-400 pointer-events-none"
+                />
+                <input
+                  type="text"
+                  value={userNote}
+                  onChange={e => setUserNote(e.target.value)}
+                  placeholder="Any specific requests? (e.g. 'Vegan only', 'Under 50 RON')"
+                  className="w-full rounded-2xl border border-white/10 bg-slate-800/70 backdrop-blur
+                             pl-9 pr-9 py-2.5 text-sm text-slate-200 placeholder-slate-500
+                             focus:outline-none focus:border-purple-500/50 focus:bg-slate-800/90
+                             transition-all"
+                />
+                {userNote && (
+                  <button
+                    type="button"
+                    onClick={handleClearNote}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors"
+                  >
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
+              <button
+                type="submit"
+                disabled={status === 'loading'}
+                className="flex items-center gap-1.5 rounded-2xl border border-purple-500/40 bg-purple-500/15
+                           px-4 py-2.5 text-sm font-black text-purple-300
+                           hover:bg-purple-500/25 hover:border-purple-400/60 hover:text-purple-200
+                           disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+                style={{ boxShadow: '0 0 12px rgba(168,85,247,0.2)' }}
+              >
+                <Send size={13} />
+                Ask AI
+              </button>
+            </div>
           </form>
 
           {/* Applied note chip */}
@@ -331,14 +381,14 @@ export default function AiCategoryRecommendations() {
 
         {/* ── Error ── */}
         {status === 'error' && (
-          <ErrorCard category={category} onRetry={fetchData} />
+          <ErrorCard category={appliedCategory} onRetry={() => fetchData(appliedCategory, appliedNote)} />
         )}
 
         {/* ── Success ── */}
         {status === 'success' && (
           <>
             {recs.length === 0 ? (
-              <ErrorCard category={category} onRetry={fetchData} />
+              <ErrorCard category={appliedCategory} onRetry={() => fetchData(appliedCategory, appliedNote)} />
             ) : (
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 {recs.map((item, i) => (

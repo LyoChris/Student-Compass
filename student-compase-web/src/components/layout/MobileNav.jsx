@@ -94,7 +94,7 @@ export default function MobileNav() {
           <img
             src="/logo.png"
             alt="StuFi"
-            className="h-11 w-auto object-contain"
+            className="h-14 w-auto object-contain"
             draggable="false"
           />
         </div>
@@ -143,7 +143,7 @@ export default function MobileNav() {
             <img
               src="/logo.png"
               alt="StuFi"
-              className="h-11 w-auto object-contain"
+              className="h-14 w-auto object-contain"
               draggable="false"
             />
           </div>

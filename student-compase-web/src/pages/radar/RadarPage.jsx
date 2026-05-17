@@ -30,6 +30,40 @@ const CATEGORY_META = {
 }
 
 
+// ── User location icon ────────────────────────────────────────────────────────
+function createUserLocationIcon() {
+  const html = `
+    <div style="position:relative;width:44px;height:44px;display:flex;align-items:center;justify-content:center;">
+      <!-- outer pulse ring -->
+      <div style="
+        position:absolute;
+        width:44px;height:44px;
+        border-radius:50%;
+        background:rgba(99,102,241,0.18);
+        border:1.5px solid rgba(99,102,241,0.35);
+        animation:user-ring 2s ease-out infinite;
+      "></div>
+      <!-- inner dot -->
+      <div style="
+        width:20px;height:20px;
+        border-radius:50%;
+        background:linear-gradient(135deg,#6366F1,#A855F7);
+        border:3px solid #fff;
+        box-shadow:0 0 0 2px rgba(99,102,241,0.5),0 4px 16px rgba(99,102,241,0.6);
+        position:relative;
+        z-index:1;
+      "></div>
+    </div>
+  `
+  return L.divIcon({
+    html,
+    iconSize:    [44, 44],
+    iconAnchor:  [22, 22],
+    popupAnchor: [0, -26],
+    className:   'user-location-marker',
+  })
+}
+
 // ── Custom pin config ─────────────────────────────────────────────────────────
 const PIN_META = {
   FOOD:   { emoji: '🍔', color: '#F97316', glow: 'rgba(249,115,22,0.55)'   },
@@ -221,6 +255,12 @@ export default function RadarPage() {
 
   return (
     <AppShell>
+      <style>{`
+        @keyframes user-ring {
+          0%   { transform: scale(1);   opacity: 0.9; }
+          100% { transform: scale(2.4); opacity: 0;   }
+        }
+      `}</style>
       {/* h-[calc(100dvh-3.5rem)]: subtract 56px mobile header added by AppShell's pt-14 wrapper */}
       <div className="flex flex-col h-[calc(100dvh-3.5rem)] md:h-dvh">
         {/* Top bar */}
@@ -325,6 +365,28 @@ export default function RadarPage() {
                     </Marker>
                   )
                 })}
+
+                {/* ── User location marker ── */}
+                {gpsTarget && (
+                  <Marker
+                    position={[gpsTarget.lat, gpsTarget.lng]}
+                    icon={createUserLocationIcon()}
+                    zIndexOffset={1000}
+                  >
+                    <Tooltip
+                      direction="top"
+                      offset={[0, -28]}
+                      opacity={1}
+                      permanent={false}
+                      className="radar-tooltip"
+                    >
+                      <div style={{ fontFamily: 'inherit', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                        <span style={{ fontSize: '10px' }}>📍</span>
+                        <span style={{ fontSize: '12px', fontWeight: 800, color: '#a5b4fc' }}>Tu ești aici</span>
+                      </div>
+                    </Tooltip>
+                  </Marker>
+                )}
               </MapContainer>
 
               {/* Deal count overlay — z-[800] clears all Leaflet internal panes */}

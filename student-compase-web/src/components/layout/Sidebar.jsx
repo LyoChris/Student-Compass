@@ -51,11 +51,11 @@ export default function Sidebar() {
   return (
     <aside className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 z-30 glass-card border-r border-white/10">
       {/* Logo */}
-      <div className="flex items-center px-5 h-16 flex-shrink-0 border-b border-white/8">
+      <div className="flex items-center px-4 h-20 flex-shrink-0 border-b border-white/8">
         <img
           src="/logo.png"
           alt="StuFi"
-          className="h-12 w-auto object-contain"
+          className="h-16 w-auto object-contain"
           draggable="false"
         />
       </div>
