@@ -1,7 +1,7 @@
 import os
 import csv
 from typing import List, Dict
-from app.core.config import settings
+from app.core.scraper.config import settings
 
 def save_products_to_csv(products: List[Dict]):
     """
