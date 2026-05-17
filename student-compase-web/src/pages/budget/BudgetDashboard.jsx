@@ -469,13 +469,12 @@ export default function BudgetDashboard() {
                 Add Manual
               </button>
               <button
-                onClick={() => setShowUpload(true)}
-                disabled={loading || !budget}
+                onClick={() => showToast('Urmează să fie implementat.', 'error')}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass-card text-xs font-bold text-slate-300
-                           hover:border-purple-500/40 hover:text-purple-300 disabled:opacity-40 disabled:cursor-not-allowed"
+                           hover:border-amber-500/40 hover:text-amber-300"
               >
                 <Upload size={13} />
-                Upload CSV
+                Import Bank Statement
               </button>
             </div>
           </div>

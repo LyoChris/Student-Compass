@@ -221,11 +221,8 @@ export default function OnboardingWizard() {
       <div className="relative mx-auto flex min-h-[calc(100vh-3rem)] w-full max-w-5xl flex-col justify-center">
         <header className="mb-7 flex flex-wrap items-center justify-between gap-4">
           <div className="flex items-center gap-3">
-            <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-purple-500 shadow-[0_0_35px_rgba(168,85,247,0.45)]">
-              <span className="text-xl font-black">S</span>
-            </div>
+            <img src="/logo.png" alt="StuFi" className="h-11 w-auto object-contain" draggable="false" />
             <div>
-              <p className="text-lg font-black">StuFi</p>
               <p className="text-xs font-semibold text-slate-500">Profile onboarding</p>
             </div>
           </div>
