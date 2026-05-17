@@ -74,8 +74,8 @@ function Toast({ message, onClose }) {
   }, [onClose])
 
   return (
-    <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3
-                    glass-card border border-rose-500/30 rounded-2xl px-4 py-3 shadow-xl max-w-sm">
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3
+                    glass-card border border-rose-500/30 rounded-2xl px-4 py-3 shadow-xl max-w-sm w-[calc(100%-2rem)]">
       <AlertCircle size={16} className="text-rose-400 flex-shrink-0" />
       <p className="text-rose-300 text-sm flex-1">{message}</p>
       <button onClick={onClose} className="text-slate-500 hover:text-slate-300">
@@ -212,7 +212,8 @@ export default function AIChatPage() {
 
   return (
     <AppShell>
-      <div className="max-w-2xl mx-auto px-4 pt-6 pb-28 md:pb-8 flex flex-col" style={{ height: 'calc(100dvh - 0px)' }}>
+      {/* h-[calc(100dvh-3.5rem)]: subtract 56px mobile header added by AppShell */}
+      <div className="max-w-2xl mx-auto w-full px-4 pt-4 pb-4 flex flex-col h-[calc(100dvh-3.5rem)] md:h-dvh">
 
         {/* ── Header ── */}
         <div className="flex items-center justify-between mb-4 flex-shrink-0">

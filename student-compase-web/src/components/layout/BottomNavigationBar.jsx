@@ -1,4 +1,4 @@
-import { Home, Wallet, Zap, User, Plus } from 'lucide-react'
+import { Home, Wallet, MapPin, User, Plus } from 'lucide-react'
 import { NavLink } from 'react-router-dom'
 
 const leftItems = [
@@ -7,8 +7,8 @@ const leftItems = [
 ]
 
 const rightItems = [
-  { to: '/chat',    icon: Zap,  label: 'AI Chat' },
-  { to: '/profile', icon: User, label: 'Profile' },
+  { to: '/radar',   icon: MapPin, label: 'Radar'   },
+  { to: '/profile', icon: User,   label: 'Profile' },
 ]
 
 function NavItem({ to, icon: Icon, label }) {
@@ -16,14 +16,16 @@ function NavItem({ to, icon: Icon, label }) {
     <NavLink
       to={to}
       className={({ isActive }) =>
-        `flex min-w-0 flex-1 flex-col items-center gap-1 rounded-2xl px-2 py-1.5 text-xs font-bold ${
+        `flex min-w-0 flex-1 flex-col items-center gap-1 rounded-2xl px-2 py-1.5 text-xs font-bold transition-colors ${
           isActive ? 'text-purple-300' : 'text-slate-500 hover:text-slate-300'
         }`
       }
     >
       {({ isActive }) => (
         <>
-          <span className={`flex h-8 w-8 items-center justify-center rounded-xl ${isActive ? 'bg-purple-500/20' : ''}`}>
+          <span className={`flex h-8 w-8 items-center justify-center rounded-xl transition-colors ${
+            isActive ? 'bg-purple-500/20' : ''
+          }`}>
             <Icon size={20} />
           </span>
           <span className="truncate">{label}</span>
@@ -35,7 +37,7 @@ function NavItem({ to, icon: Icon, label }) {
 
 export default function BottomNavigationBar() {
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden safe-bottom">
+    <nav className="fixed bottom-0 left-0 right-0 z-40 md:hidden">
       <div
         className="glass-card border-t border-white/10 px-2"
         style={{ paddingTop: '0.65rem', paddingBottom: 'max(env(safe-area-inset-bottom, 0px), 0.55rem)' }}
@@ -48,7 +50,7 @@ export default function BottomNavigationBar() {
           <NavLink
             to="/marketplace/sell"
             className={({ isActive }) =>
-              `mx-auto -mt-8 flex h-16 w-16 items-center justify-center rounded-full border-4 border-slate-900 bg-purple-500 text-white shadow-[0_0_34px_rgba(168,85,247,0.55)] active:scale-95 ${
+              `mx-auto -mt-8 flex h-16 w-16 items-center justify-center rounded-full border-4 border-slate-900 bg-purple-500 text-white shadow-[0_0_34px_rgba(168,85,247,0.55)] active:scale-95 transition-all ${
                 isActive ? 'ring-2 ring-purple-200/60' : 'hover:bg-purple-400'
               }`
             }

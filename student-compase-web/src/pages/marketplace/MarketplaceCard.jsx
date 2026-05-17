@@ -1,5 +1,27 @@
-import { BadgeCheck, ImageIcon, Sparkles, Tag } from 'lucide-react'
+import { BadgeCheck, ImageIcon, Sparkles, Tag, ShieldAlert, ShieldCheck, ShieldQuestion } from 'lucide-react'
 import { Link } from 'react-router-dom'
+
+function TrustBadge({ score }) {
+  const s = Number(score ?? 0)
+  if (s > 80) return (
+    <span className="flex items-center gap-1 rounded-full border border-emerald-400/30 bg-emerald-500/15 px-2.5 py-1 text-[0.68rem] font-black text-emerald-300">
+      <ShieldCheck size={11} />
+      {s} Trust
+    </span>
+  )
+  if (s >= 30) return (
+    <span className="flex items-center gap-1 rounded-full border border-amber-400/30 bg-amber-500/15 px-2.5 py-1 text-[0.68rem] font-black text-amber-300">
+      <ShieldQuestion size={11} />
+      {s} Trust
+    </span>
+  )
+  return (
+    <span className="flex items-center gap-1 rounded-full border border-rose-400/30 bg-rose-500/15 px-2.5 py-1 text-[0.68rem] font-black text-rose-300">
+      <ShieldAlert size={11} />
+      {s} Trust
+    </span>
+  )
+}
 
 const conditionStyles = {
   NEW: 'bg-emerald-500/15 text-emerald-200 border-emerald-300/20',
@@ -82,6 +104,9 @@ export default function MarketplaceCard({ item }) {
               <Tag size={11} />
               {categoryLabels[item.category] || readable(item.category)}
             </span>
+            {item.sellerTrustScore !== undefined && item.sellerTrustScore !== null && (
+              <TrustBadge score={item.sellerTrustScore} />
+            )}
           </div>
 
           <div>

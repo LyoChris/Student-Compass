@@ -1,18 +1,22 @@
 import { useState, useEffect } from 'react'
 import { Bell } from 'lucide-react'
-import AppShell        from '../../components/layout/AppShell'
-import { useAuth }     from '../../hooks/useAuth'
-import HealthGauge     from '../../features/dashboard/HealthGauge'
-import QuickStats      from '../../features/dashboard/QuickStats'
-import AIWidget        from '../../features/dashboard/AIWidget'
-import MarketWidget    from '../../features/dashboard/MarketWidget'
-import RadarWidget     from '../../features/dashboard/RadarWidget'
-import RecentActivity  from '../../features/dashboard/RecentActivity'
-import { budgetApi }      from '../../api/budgetApi'
-import { marketplaceApi } from '../../api/marketplaceApi'
+import { useTranslation } from 'react-i18next'
+import AppShell                from '../../components/layout/AppShell'
+import { useAuth }             from '../../hooks/useAuth'
+import HealthGauge             from '../../features/dashboard/HealthGauge'
+import QuickStats              from '../../features/dashboard/QuickStats'
+import BudgetBreakdownWidget   from '../../features/dashboard/BudgetBreakdownWidget'
+import ExpandableAiChat        from '../../features/dashboard/ExpandableAiChat'
+import AiRecommendationsWidget from '../../features/dashboard/AiRecommendationsWidget'
+import MarketWidget            from '../../features/dashboard/MarketWidget'
+import RadarWidget             from '../../features/dashboard/RadarWidget'
+import RecentActivity          from '../../features/dashboard/RecentActivity'
+import { budgetApi }           from '../../api/budgetApi'
+import { marketplaceApi }      from '../../api/marketplaceApi'
 
 export default function DashboardPage() {
   const { user } = useAuth()
+  const { t }    = useTranslation()
 
   const [budget,     setBudget]     = useState(null)
   const [spendToday, setSpendToday] = useState(null)
@@ -37,12 +41,15 @@ export default function DashboardPage() {
 
   const firstName = user?.firstName ?? 'Student'
   const hour      = new Date().getHours()
-  const greeting  = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening'
+  const greetKey  = hour < 12 ? 'dashboard.goodMorning' : hour < 17 ? 'dashboard.goodAfternoon' : 'dashboard.goodEvening'
+  const greeting  = t(greetKey)
 
   return (
     <AppShell>
-      <div className="max-w-2xl mx-auto px-4 pt-6 pb-28 md:pb-8 space-y-4">
-        <div className="flex items-center justify-between mb-2">
+      <div className="max-w-3xl mx-auto px-4 pt-6 pb-10 space-y-5">
+
+        {/* ── Greeting header ── */}
+        <div className="flex items-center justify-between">
           <div>
             <p className="text-slate-500 text-sm font-medium">{greeting},</p>
             <h1 className="text-2xl font-black text-slate-100 tracking-tight">
@@ -51,18 +58,36 @@ export default function DashboardPage() {
           </div>
           <button
             className="relative w-11 h-11 rounded-2xl glass-card flex items-center justify-center hover:border-purple-500/40"
-            aria-label="Notifications"
+            aria-label={t('common.notifications')}
           >
             <Bell size={18} className="text-slate-400" />
           </button>
         </div>
 
-        <HealthGauge    budget={budget}      loading={loading} />
-        <QuickStats     budget={budget}      loading={loading} />
-        <AIWidget />
-        <MarketWidget   items={items}        loading={loading} />
-        <RadarWidget    loading={loading} />
-        <RecentActivity spendToday={spendToday} loading={loading} />
+        {/* ── Financial health gauge — full width ── */}
+        <HealthGauge budget={budget} loading={loading} />
+
+        {/* ── Quick stats strip — full width ── */}
+        <QuickStats budget={budget} loading={loading} />
+
+        {/* ── 2-col grid: Budget breakdown + Radar widget ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <BudgetBreakdownWidget budget={budget} loading={loading} />
+          <RadarWidget />
+        </div>
+
+        {/* ── Expandable AI Chat — floating widget ── */}
+        <ExpandableAiChat />
+
+        {/* ── AI picks carousel — full width (FOOD category default) ── */}
+        <AiRecommendationsWidget category="FOOD" />
+
+        {/* ── 2-col grid: Marketplace + Recent activity ── */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <MarketWidget items={items} loading={loading} />
+          <RecentActivity spendToday={spendToday} loading={loading} />
+        </div>
+
       </div>
     </AppShell>
   )

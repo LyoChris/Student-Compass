@@ -9,7 +9,7 @@ export default function InstallBanner() {
   if (!canInstall || dismissed) return null
 
   return (
-    <div className="fixed bottom-24 left-4 right-4 z-50 md:bottom-6 md:left-auto md:right-6 md:w-80">
+    <div className="fixed bottom-6 left-4 right-4 z-50 md:left-auto md:right-6 md:w-80">
       <div className="glass-card accent-glow rounded-2xl p-4 flex items-center gap-3">
         <div className="w-10 h-10 rounded-xl bg-purple-500/20 flex items-center justify-center flex-shrink-0">
           <Download size={20} className="text-purple-400" />

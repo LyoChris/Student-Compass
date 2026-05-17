@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react'
+import { useNavigate } from 'react-router-dom'
 import {
   ChevronLeft, ChevronRight, Wallet, TrendingUp, Trophy,
   Plus, Upload, SlidersHorizontal, AlertCircle,
-  CheckCircle2, X, Loader2,
+  CheckCircle2, X, Loader2, Sparkles, Lock, ArrowDown, Equal,
 } from 'lucide-react'
 import AppShell from '../../components/layout/AppShell'
 import { budgetApi } from '../../api/budgetApi'
@@ -45,7 +46,7 @@ function Toast({ toast, onClose }) {
   if (!toast) return null
   const isErr = toast.type === 'error'
   return (
-    <div className={`fixed bottom-24 md:bottom-8 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3
+    <div className={`fixed bottom-6 left-1/2 -translate-x-1/2 z-50 flex items-center gap-3
         glass-card rounded-2xl px-4 py-3 shadow-xl max-w-sm w-[calc(100%-2rem)]
         border ${isErr ? 'border-rose-500/30' : 'border-emerald-500/30'}`}>
       {isErr
@@ -124,8 +125,101 @@ function KpiCard({ icon: Icon, label, value, accent, loading }) {
   )
 }
 
+// ─── Income breakdown card ────────────────────────────────────────────────────
+function IncomeBreakdownCard({ budget, loading }) {
+  if (loading) return (
+    <div className="glass-card rounded-3xl p-5 space-y-3">
+      <div className="flex items-center gap-2 mb-1">
+        <div className="skeleton h-4 w-4 rounded" />
+        <div className="skeleton h-3 w-32 rounded" />
+      </div>
+      <div className="skeleton h-12 w-full rounded-2xl" />
+      <div className="skeleton h-1 w-full rounded" />
+      <div className="skeleton h-12 w-full rounded-2xl" />
+      <div className="skeleton h-1 w-full rounded" />
+      <div className="skeleton h-12 w-full rounded-2xl" />
+    </div>
+  )
+
+  const income  = Number(budget?.totalIncome ?? 0)
+  // fixed total: prefer explicit field, fall back to income - disposable
+  const fixed   = Number(
+    budget?.fixedExpensesTotal ?? budget?.fixedTotal ?? (income - Number(budget?.disposableIncome ?? budget?.totalAllocated ?? 0))
+  )
+  const disposable = income - fixed
+
+  if (!income) return null
+
+  return (
+    <div className="glass-card rounded-3xl p-5">
+      <div className="flex items-center gap-2 mb-4">
+        <div className="w-7 h-7 rounded-xl bg-amber-500/15 flex items-center justify-center">
+          <Lock size={13} className="text-amber-400" />
+        </div>
+        <span className="text-sm font-black text-slate-100">Income Breakdown</span>
+        <span className="ml-auto text-[0.62rem] text-slate-600 font-semibold uppercase tracking-wider">How we calculate your budget</span>
+      </div>
+
+      {/* Row: Total Income */}
+      <div className="flex items-center justify-between rounded-2xl bg-emerald-500/8 border border-emerald-500/15 px-4 py-3">
+        <div className="flex items-center gap-2.5">
+          <TrendingUp size={14} className="text-emerald-400" />
+          <span className="text-sm font-bold text-slate-300">Monthly Income</span>
+        </div>
+        <span className="text-sm font-black text-emerald-300 tabular-nums">
+          {fmtRon(income)} <span className="text-xs font-bold text-slate-500">RON</span>
+        </span>
+      </div>
+
+      {/* Divider with arrow */}
+      <div className="flex items-center gap-2 my-1.5 px-4">
+        <ArrowDown size={12} className="text-rose-400/60 mx-auto" />
+      </div>
+
+      {/* Row: Fixed Expenses */}
+      <div className="flex items-center justify-between rounded-2xl bg-rose-500/8 border border-rose-500/15 px-4 py-3">
+        <div className="flex items-center gap-2.5">
+          <Lock size={14} className="text-rose-400" />
+          <span className="text-sm font-bold text-slate-300">Fixed Expenses</span>
+        </div>
+        <span className="text-sm font-black text-rose-400 tabular-nums">
+          −{fmtRon(fixed)} <span className="text-xs font-bold text-slate-500">RON</span>
+        </span>
+      </div>
+
+      {/* Divider with equals */}
+      <div className="flex items-center gap-2 my-1.5 px-4">
+        <Equal size={12} className="text-purple-400/60 mx-auto" />
+      </div>
+
+      {/* Row: Disposable */}
+      <div
+        className="flex items-center justify-between rounded-2xl px-4 py-3 border border-purple-500/25"
+        style={{ background: 'rgba(168,85,247,0.10)', boxShadow: '0 0 16px rgba(168,85,247,0.1)' }}
+      >
+        <div className="flex items-center gap-2.5">
+          <Wallet size={14} className="text-purple-400" />
+          <span className="text-sm font-bold text-slate-200">Disposable Budget</span>
+        </div>
+        <span
+          className="text-sm font-black tabular-nums"
+          style={{ color: '#A855F7', textShadow: '0 0 12px rgba(168,85,247,0.4)' }}
+        >
+          {fmtRon(disposable)} <span className="text-xs font-bold text-slate-500">RON</span>
+        </span>
+      </div>
+
+      <p className="text-[0.62rem] text-slate-600 text-center mt-3 leading-relaxed">
+        Your safe-to-spend and category limits are calculated from the <span className="text-slate-500">Disposable Budget</span>, not total income.
+      </p>
+    </div>
+  )
+}
+
 // ─── Category progress card ───────────────────────────────────────────────────
 function CategoryCard({ cat, loading }) {
+  const navigate = useNavigate()
+
   if (loading) return (
     <div className="glass-card rounded-2xl p-4 space-y-3">
       <div className="flex justify-between">
@@ -133,14 +227,17 @@ function CategoryCard({ cat, loading }) {
         <Sk className="h-4 w-24" />
       </div>
       <Sk className="h-2 w-full rounded-full" />
+      <Sk className="h-8 w-32 rounded-xl" />
     </div>
   )
-  const meta     = CAT_META[cat.name?.toUpperCase()] ?? { label: cat.name, color: '#A855F7' }
-  const alloc    = Number(cat.allocatedAmount ?? 0)
-  const spent    = Number(cat.spentAmount ?? 0)
-  const pct      = alloc > 0 ? Math.min((spent / alloc) * 100, 100) : 0
-  const barColor = pct < 50 ? '#10B981' : pct < 85 ? '#F59E0B' : '#F43F5E'
+
+  const meta      = CAT_META[cat.name?.toUpperCase()] ?? { label: cat.name, color: '#A855F7' }
+  const alloc     = Number(cat.allocatedAmount ?? 0)
+  const spent     = Number(cat.spentAmount ?? 0)
+  const pct       = alloc > 0 ? Math.min((spent / alloc) * 100, 100) : 0
+  const barColor  = pct < 50 ? '#10B981' : pct < 85 ? '#F59E0B' : '#F43F5E'
   const remaining = Number(cat.remaining ?? (alloc - spent))
+  const catKey    = cat.name?.toUpperCase()
 
   return (
     <div className="glass-card rounded-2xl p-4 space-y-3 hover:border-slate-600/70 transition-colors">
@@ -161,11 +258,25 @@ function CategoryCard({ cat, loading }) {
         />
       </div>
 
-      <div className="flex items-center justify-between text-xs">
-        <span className="text-slate-500">{pct.toFixed(0)}% used</span>
-        <span className={remaining >= 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
-          {remaining >= 0 ? '+' : ''}{fmtRon(remaining)} left
-        </span>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3 text-xs">
+          <span className="text-slate-500">{pct.toFixed(0)}% used</span>
+          <span className={remaining >= 0 ? 'text-emerald-400 font-bold' : 'text-rose-400 font-bold'}>
+            {remaining >= 0 ? '+' : ''}{fmtRon(remaining)} left
+          </span>
+        </div>
+
+        <button
+          onClick={() => navigate(`/recommendations?category=${catKey}`)}
+          className="flex items-center gap-1.5 rounded-xl border border-purple-500/30 bg-purple-500/10
+                     px-3 py-1.5 text-[0.68rem] font-black text-purple-300
+                     hover:bg-purple-500/20 hover:border-purple-400/50 hover:text-purple-200
+                     transition-all active:scale-95"
+          style={{ boxShadow: '0 0 10px rgba(168,85,247,0.15)' }}
+        >
+          <Sparkles size={11} />
+          AI Deals
+        </button>
       </div>
     </div>
   )
@@ -215,8 +326,11 @@ export default function BudgetDashboard() {
   }
 
   // ── KPI derived values ────────────────────────────────────────────────────
+  const fixedTotal = Number(
+    budget?.fixedExpensesTotal ?? budget?.fixedTotal ?? 0
+  )
   const leftForMonth = budget
-    ? Number(budget.totalAllocated ?? 0) - Number(budget.totalSpent ?? 0)
+    ? Number(budget.totalAllocated ?? 0) - Number(budget.totalSpent ?? 0) - fixedTotal
     : 0
 
   const cats = budget?.categories ?? []
@@ -263,6 +377,9 @@ export default function BudgetDashboard() {
 
         {/* ── Safe-to-Spend hero ── */}
         <S2SCard value={budget?.safeToSpendPerDay} loading={loading} />
+
+        {/* ── Income breakdown ── */}
+        <IncomeBreakdownCard budget={budget} loading={loading} />
 
         {/* ── KPI row ── */}
         <div className="grid grid-cols-2 gap-3">
