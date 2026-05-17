@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useAuth } from '../../hooks/useAuth'
+import { profileApi } from '../../api/profileApi'
 import {
   ChevronLeft, ChevronRight, Wallet, TrendingUp, Trophy,
   Plus, Upload, SlidersHorizontal, AlertCircle,
@@ -126,7 +128,7 @@ function KpiCard({ icon: Icon, label, value, accent, loading }) {
 }
 
 // ─── Income breakdown card ────────────────────────────────────────────────────
-function IncomeBreakdownCard({ budget, loading }) {
+function IncomeBreakdownCard({ budget, loading, profileFixedTotal }) {
   if (loading) return (
     <div className="glass-card rounded-3xl p-5 space-y-3">
       <div className="flex items-center gap-2 mb-1">
@@ -142,10 +144,10 @@ function IncomeBreakdownCard({ budget, loading }) {
   )
 
   const income  = Number(budget?.totalIncome ?? 0)
-  // fixed total: prefer explicit field, fall back to income - disposable
-  const fixed   = Number(
-    budget?.fixedExpensesTotal ?? budget?.fixedTotal ?? (income - Number(budget?.disposableIncome ?? budget?.totalAllocated ?? 0))
-  )
+  // prefer profile fixed expenses sum, then budget fields, then fallback
+  const fixed   = profileFixedTotal != null
+    ? profileFixedTotal
+    : Number(budget?.fixedExpensesTotal ?? budget?.fixedTotal ?? (income - Number(budget?.disposableIncome ?? budget?.totalAllocated ?? 0)))
   const disposable = income - fixed
 
   if (!income) return null
@@ -285,12 +287,14 @@ function CategoryCard({ cat, loading }) {
 // ─── Main component ───────────────────────────────────────────────────────────
 export default function BudgetDashboard() {
   const now = new Date()
+  const { user } = useAuth()
   const [month, setMonth] = useState(now.getMonth() + 1)
   const [year,  setYear]  = useState(now.getFullYear())
 
-  const [budget, setBudget]     = useState(null)
-  const [loading, setLoading]   = useState(true)
-  const [error, setError]       = useState(null)
+  const [budget, setBudget]                 = useState(null)
+  const [loading, setLoading]               = useState(true)
+  const [error, setError]                   = useState(null)
+  const [profileFixedTotal, setProfileFixedTotal] = useState(null)
 
   const [showManage,  setShowManage]  = useState(false)
   const [showAddTx,   setShowAddTx]   = useState(false)
@@ -314,6 +318,18 @@ export default function BudgetDashboard() {
   }, [month, year])
 
   useEffect(() => { fetchBudget() }, [fetchBudget])
+
+  // Fetch profile fixed expenses and sum them
+  useEffect(() => {
+    if (!user?.id) return
+    profileApi.getProfile(user.id)
+      .then(({ data }) => {
+        const expenses = Array.isArray(data?.fixedExpenses) ? data.fixedExpenses : []
+        const total = expenses.reduce((sum, e) => sum + Number(e.amount ?? 0), 0)
+        setProfileFixedTotal(total)
+      })
+      .catch(() => {})
+  }, [user?.id])
 
   // ── Month navigation ──────────────────────────────────────────────────────
   const prevMonth = () => {
@@ -379,7 +395,7 @@ export default function BudgetDashboard() {
         <S2SCard value={budget?.safeToSpendPerDay} loading={loading} />
 
         {/* ── Income breakdown ── */}
-        <IncomeBreakdownCard budget={budget} loading={loading} />
+        <IncomeBreakdownCard budget={budget} loading={loading} profileFixedTotal={profileFixedTotal} />
 
         {/* ── KPI row ── */}
         <div className="grid grid-cols-2 gap-3">
@@ -469,13 +485,12 @@ export default function BudgetDashboard() {
                 Add Manual
               </button>
               <button
-                onClick={() => setShowUpload(true)}
-                disabled={loading || !budget}
+                onClick={() => showToast('Urmează să fie implementat.', 'error')}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass-card text-xs font-bold text-slate-300
-                           hover:border-purple-500/40 hover:text-purple-300 disabled:opacity-40 disabled:cursor-not-allowed"
+                           hover:border-amber-500/40 hover:text-amber-300"
               >
                 <Upload size={13} />
-                Upload CSV
+                Import Bank Statement
               </button>
             </div>
           </div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Sparkles, BadgeCheck, Brain, Target, Coffee, ExternalLink } from 'lucide-react'
+import { Sparkles, BadgeCheck, Brain, Target, Coffee } from 'lucide-react'
 import { recommendationsApi } from '../../api/recommendationsApi'
 
 // ── Helpers ────────────────────────────────────────────────────────────────────
@@ -90,13 +90,6 @@ function RecommendationCard({ item }) {
         </div>
       </div>
 
-      {/* Action */}
-      <div className="px-5 pb-5 pt-3">
-        <button className="w-full flex items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 px-4 py-2.5 text-sm font-black text-slate-200 hover:border-purple-500/40 hover:bg-purple-500/10 hover:text-purple-200 transition-all">
-          <ExternalLink size={14} />
-          View Deal
-        </button>
-      </div>
     </article>
   )
 }

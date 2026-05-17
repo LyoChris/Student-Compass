@@ -34,7 +34,6 @@ export default function Sidebar() {
     {
       label: t('nav.groups.tools'),
       items: [
-        { to: '/chat',    icon: Zap,  label: t('nav.aiChat')  },
         { to: '/profile', icon: User, label: t('nav.profile') },
       ],
     },

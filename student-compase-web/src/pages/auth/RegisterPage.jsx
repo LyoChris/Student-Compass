@@ -95,11 +95,8 @@ export default function RegisterPage() {
         <div className="absolute -bottom-40 right-0 w-64 h-64 rounded-full bg-purple-500/10 blur-3xl" />
 
         <div className="relative z-10 text-center max-w-sm">
-          <div
-            className="w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl"
-            style={{ background: 'linear-gradient(135deg, #6366F1, #A855F7)' }}
-          >
-            <span className="text-white font-black text-4xl">S</span>
+          <div className="mx-auto mb-8">
+            <img src="/logo.png" alt="StuFi" className="h-24 w-auto object-contain mx-auto" draggable="false" />
           </div>
           <h2 className="text-4xl font-black text-slate-100 leading-tight tracking-tight">
             Join 10,000+<br />students.
@@ -128,10 +125,7 @@ export default function RegisterPage() {
       <div className="flex-1 flex items-start justify-center p-6 overflow-y-auto">
         <div className="w-full max-w-sm py-8">
           <Link to="/" className="inline-flex items-center gap-2.5 mb-8">
-            <div className="w-9 h-9 rounded-xl bg-purple-500 flex items-center justify-center shadow-lg shadow-purple-500/40">
-              <span className="text-white font-black text-base">S</span>
-            </div>
-            <span className="text-xl font-black text-slate-100">StuFi</span>
+            <img src="/logo.png" alt="StuFi" className="h-10 w-auto object-contain" draggable="false" />
           </Link>
 
           <h1 className="text-3xl font-black text-slate-100 mb-1.5 tracking-tight">Create account</h1>
