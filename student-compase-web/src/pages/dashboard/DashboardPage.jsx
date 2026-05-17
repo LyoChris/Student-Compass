@@ -13,15 +13,17 @@ import RadarWidget             from '../../features/dashboard/RadarWidget'
 import RecentActivity          from '../../features/dashboard/RecentActivity'
 import { budgetApi }           from '../../api/budgetApi'
 import { marketplaceApi }      from '../../api/marketplaceApi'
+import { profileApi }          from '../../api/profileApi'
 
 export default function DashboardPage() {
   const { user } = useAuth()
   const { t }    = useTranslation()
 
-  const [budget,     setBudget]     = useState(null)
-  const [spendToday, setSpendToday] = useState(null)
-  const [items,      setItems]      = useState([])
-  const [loading,    setLoading]    = useState(true)
+  const [budget,           setBudget]           = useState(null)
+  const [spendToday,       setSpendToday]       = useState(null)
+  const [items,            setItems]            = useState([])
+  const [loading,          setLoading]          = useState(true)
+  const [profileFixedTotal, setProfileFixedTotal] = useState(null)
 
   useEffect(() => {
     const now = new Date()
@@ -37,6 +39,16 @@ export default function DashboardPage() {
       })
       .catch(() => {})
       .finally(() => setLoading(false))
+
+    if (user?.id) {
+      profileApi.getProfile(user.id)
+        .then(({ data }) => {
+          const expenses = Array.isArray(data?.fixedExpenses) ? data.fixedExpenses : []
+          const total = expenses.reduce((sum, e) => sum + Number(e.amount ?? 0), 0)
+          setProfileFixedTotal(total)
+        })
+        .catch(() => {})
+    }
   }, [])
 
   const firstName = user?.firstName ?? 'Student'
@@ -72,7 +84,7 @@ export default function DashboardPage() {
 
         {/* ── 2-col grid: Budget breakdown + Radar widget ── */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <BudgetBreakdownWidget budget={budget} loading={loading} />
+          <BudgetBreakdownWidget budget={budget} loading={loading} profileFixedTotal={profileFixedTotal} />
           <RadarWidget />
         </div>
 

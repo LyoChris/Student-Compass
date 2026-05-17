@@ -12,7 +12,7 @@ function fmtRon(n) {
   }).format(Number(n ?? 0))
 }
 
-export default function BudgetBreakdownWidget({ budget, loading }) {
+export default function BudgetBreakdownWidget({ budget, loading, profileFixedTotal }) {
   if (loading) {
     return (
       <div className="glass-card rounded-3xl p-5 space-y-3">
@@ -25,11 +25,13 @@ export default function BudgetBreakdownWidget({ budget, loading }) {
   }
 
   const income   = Number(budget?.totalIncome ?? 0)
-  const fixed    = Number(
-    budget?.fixedExpensesTotal ??
-    budget?.fixedTotal ??
-    (income - Number(budget?.disposableIncome ?? budget?.totalAllocated ?? 0))
-  )
+  const fixed    = profileFixedTotal != null
+    ? profileFixedTotal
+    : Number(
+        budget?.fixedExpensesTotal ??
+        budget?.fixedTotal ??
+        (income - Number(budget?.disposableIncome ?? budget?.totalAllocated ?? 0))
+      )
   const disposable = income - fixed
 
   return (
