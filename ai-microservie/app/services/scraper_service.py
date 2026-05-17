@@ -2,7 +2,7 @@
 
 from typing import List, Dict
 
-from modules.scraper import auchan_scraper, dedeman_scraper, emag_scraper
+from app.modules.scraper import auchan_scraper, dedeman_scraper, emag_scraper
 from app.core.scraper.storage import save_products_to_csv
 
 # Map scraperType to function
