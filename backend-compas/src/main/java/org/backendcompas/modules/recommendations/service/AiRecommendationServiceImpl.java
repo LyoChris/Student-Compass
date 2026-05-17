@@ -27,6 +27,7 @@ import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestClientResponseException;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
@@ -39,7 +40,7 @@ public class AiRecommendationServiceImpl implements AiRecommendationService {
     // ── constants ─────────────────────────────────────────────────────────────
 
     private static final String GEMINI_BASE_URL = "https://generativelanguage.googleapis.com";
-    private static final String GEMINI_PATH     = "/v1beta/models/gemini-1.5-flash:generateContent";
+    private static final String GEMINI_PATH     = "/v1beta/models/gemini-2.0-flash:generateContent";
     private static final String SOURCE_LLM      = "llm";
     private static final String SOURCE_GEMINI   = "gemini_fallback";
 
@@ -177,19 +178,23 @@ public class AiRecommendationServiceImpl implements AiRecommendationService {
     private AiRecommendationResponseDto callRecommendationsWithFallback(
             EnrichedAiRequestDto request, UUID userId, String category) {
         try {
-            AiRecommendationResponseDto response = aiRestClient.post()
+            // Use exchange() to read raw bytes — bypasses content-type negotiation entirely.
+            // The Python service sometimes returns application/octet-stream for valid JSON.
+            String raw = aiRestClient.post()
                     .uri("/api/v1/recommendations")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON)
                     .body(request)
-                    .retrieve()
-                    .body(AiRecommendationResponseDto.class);
+                    .exchange((req, res) ->
+                            new String(res.getBody().readAllBytes(), StandardCharsets.UTF_8));
 
-            if (response == null) {
-                log.warn("Primary AI returned null recommendations — Gemini fallback: userId={}, category={}",
+            if (raw == null || raw.isBlank()) {
+                log.warn("Primary AI returned empty body (recommendations) — Gemini fallback: userId={}, category={}",
                         userId, category);
                 return callGeminiRecommendationsFallback(request, userId, category);
             }
+
+            AiRecommendationResponseDto response =
+                    objectMapper.readValue(raw, AiRecommendationResponseDto.class);
 
             log.info("Primary AI recommendations OK: userId={}, category={}, source={}, items={}",
                     userId, category, response.source(), response.recommendations().size());
@@ -247,18 +252,24 @@ public class AiRecommendationServiceImpl implements AiRecommendationService {
     private AiChatResponseDto callChatWithFallback(
             UUID userId, String message, BigDecimal totalRemaining, String profileContext) {
         try {
-            PythonChatResponse response = aiRestClient.post()
+            String rawChat = aiRestClient.post()
                     .uri("/api/v1/chat")
                     .contentType(MediaType.APPLICATION_JSON)
-                    .accept(MediaType.APPLICATION_JSON)
                     .body(new PythonChatRequest(
                             message,
                             profileContext + "; total remaining budget: " + totalRemaining.toPlainString() + " RON"
                     ))
-                    .retrieve()
-                    .body(PythonChatResponse.class);
+                    .exchange((req, res) ->
+                            new String(res.getBody().readAllBytes(), StandardCharsets.UTF_8));
 
-            if (response == null || response.reply() == null || response.reply().isBlank()) {
+            if (rawChat == null || rawChat.isBlank()) {
+                log.warn("Primary AI returned empty chat reply — Gemini fallback: userId={}", userId);
+                return callGeminiChatFallback(userId, message, totalRemaining, profileContext);
+            }
+
+            PythonChatResponse response = objectMapper.readValue(rawChat, PythonChatResponse.class);
+
+            if (response.reply() == null || response.reply().isBlank()) {
                 log.warn("Primary AI returned empty chat reply — Gemini fallback: userId={}", userId);
                 return callGeminiChatFallback(userId, message, totalRemaining, profileContext);
             }
@@ -373,8 +384,10 @@ public class AiRecommendationServiceImpl implements AiRecommendationService {
                 Invent 3 highly realistic, student-friendly products or deals for this category.
                 Prioritise affordability, practical value, and fit with the student's lifestyle.
 
-                CRITICAL RULES — violating any rule makes your response unusable:
-                1. Reply with ONLY a valid JSON array. Zero prose, zero markdown, zero code fences.
+                CRITICAL RULES:
+                1. Your ENTIRE response must be a valid JSON array and NOTHING ELSE.
+                   Do NOT write any text, explanation, greeting, or code fence before or after the array.
+                   The very first character of your response MUST be `[` and the very last MUST be `]`.
                 2. The array must contain exactly 3 objects.
                 3. Every object must have EXACTLY these fields:
                    {
@@ -421,23 +434,27 @@ public class AiRecommendationServiceImpl implements AiRecommendationService {
     // =========================================================================
 
     /**
-     * Strips optional Markdown code-fence wrapping Gemini adds despite prompt instructions,
-     * then deserialises the JSON array into a list of {@link AiProductDto}.
+     * Extracts the JSON array from Gemini's raw text regardless of surrounding prose or
+     * Markdown code-fence wrapping.
      *
-     * <p>Handles: bare array {@code [...]}, {@code ```json\n...\n```}, {@code ```\n...\n```}.
+     * <p>Strategy: locate the first {@code [} and the last {@code ]}, extract that substring,
+     * then parse. This handles bare arrays, fenced arrays, and arrays buried inside prose.
      */
     private List<AiProductDto> parseGeminiProductArray(String rawText, UUID userId, String category) {
-        String cleaned = rawText.trim();
+        String trimmed = rawText == null ? "" : rawText.trim();
 
-        if (cleaned.startsWith("```")) {
-            int nl = cleaned.indexOf('\n');
-            cleaned = (nl != -1) ? cleaned.substring(nl + 1) : cleaned.substring(3);
-        }
-        if (cleaned.endsWith("```")) {
-            cleaned = cleaned.substring(0, cleaned.lastIndexOf("```")).trim();
+        int start = trimmed.indexOf('[');
+        int end   = trimmed.lastIndexOf(']');
+
+        if (start == -1 || end == -1 || end <= start) {
+            log.error("Gemini response contains no JSON array: userId={}, category={}, raw={}",
+                    userId, category, trimmed);
+            throw new AiServiceUnavailableException(
+                    "Gemini returned a product list that could not be parsed.");
         }
 
-        log.debug("Gemini cleaned product JSON: userId={}, category={}, json={}", userId, category, cleaned);
+        String cleaned = trimmed.substring(start, end + 1);
+        log.debug("Gemini extracted product JSON: userId={}, category={}, json={}", userId, category, cleaned);
 
         try {
             return objectMapper.readValue(cleaned, new TypeReference<List<AiProductDto>>() {});

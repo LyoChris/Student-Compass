@@ -110,9 +110,8 @@ public class RecommendationController {
     @ApiResponse(
             responseCode = "400",
             description = """
-                    `category` is missing or not one of the accepted enum values:
-                    `FOOD`, `TRANSPORT`, `ENTERTAINMENT`, `HEALTH`, `CLOTHING`,
-                    `EDUCATION`, `UTILITIES`, `PERSONAL_CARE`, `SAVINGS`, `OTHER`.
+                    `category` is missing or not one of the accepted values:
+                    `FOOD`, `FURNITURE`, `ELECTRONICS`.
                     """,
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                     schema = @Schema(implementation = ApiError.class))
