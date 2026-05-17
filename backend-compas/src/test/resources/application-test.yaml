@@ -1,9 +1,9 @@
 spring:
   datasource:
-    url: jdbc:h2:mem:studentcompass;MODE=PostgreSQL;DATABASE_TO_LOWER=TRUE;DEFAULT_NULL_ORDERING=HIGH
-    username: sa
-    password:
-    driver-class-name: org.h2.Driver
+    url: ${TEST_DB_URL:jdbc:postgresql://localhost:5432/student_compas_test}
+    username: ${TEST_DB_USERNAME:user}
+    password: ${TEST_DB_PASSWORD:password}
+    driver-class-name: org.postgresql.Driver
   jpa:
     hibernate:
       ddl-auto: validate

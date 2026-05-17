@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -82,8 +81,7 @@ public class RecommendationController {
                     """,
             security = @SecurityRequirement(name = "BearerAuth")
     )
-    @ApiResponses({
-            @ApiResponse(
+    @ApiResponse(
                     responseCode = "200",
                     description = "Recommendations returned successfully (may be served from cache).",
                     content = @Content(
@@ -119,8 +117,8 @@ public class RecommendationController {
                                             """
                             )
                     )
-            ),
-            @ApiResponse(
+            )
+    @ApiResponse(
                     responseCode = "400",
                     description = """
                             Bad request. Occurs when:
@@ -146,14 +144,14 @@ public class RecommendationController {
                                             """
                             )
                     )
-            ),
-            @ApiResponse(
+            )
+    @ApiResponse(
                     responseCode = "401",
                     description = "Missing or invalid JWT access token.",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ApiError.class))
-            ),
-            @ApiResponse(
+            )
+    @ApiResponse(
                     responseCode = "404",
                     description = """
                             The authenticated student has not completed onboarding — no `StudentProfile`
@@ -176,20 +174,19 @@ public class RecommendationController {
                                             """
                             )
                     )
-            ),
-            @ApiResponse(
+            )
+    @ApiResponse(
                     responseCode = "503",
                     description = "AI service is temporarily unavailable or returned an upstream 4xx/5xx error.",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ApiError.class))
-            ),
-            @ApiResponse(
+            )
+    @ApiResponse(
                     responseCode = "504",
                     description = "AI service timed out within the configured 15-second read window.",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                             schema = @Schema(implementation = ApiError.class))
             )
-    })
     @GetMapping
     public ResponseEntity<AiRecommendationResponseDto> getRecommendations(
             @AuthenticationPrincipal CustomUserDetails userDetails,

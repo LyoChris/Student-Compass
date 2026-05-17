@@ -16,7 +16,9 @@ INSERT INTO dorms (id, city_id, name) VALUES
 
 -- Optional dorm on student profile
 ALTER TABLE student_profiles
-    ADD COLUMN dorm_id UUID NULL,
+    ADD COLUMN dorm_id UUID NULL;
+
+ALTER TABLE student_profiles
     ADD CONSTRAINT fk_student_profiles_dorm FOREIGN KEY (dorm_id) REFERENCES dorms (id);
 
 -- Denormalized seller location snapshot on marketplace listings
