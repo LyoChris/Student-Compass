@@ -11,12 +11,12 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.backendcompas.core.exception.ApiError;
-import org.backendcompas.core.exception.BadRequestException;
 import org.backendcompas.core.exception.UnauthorizedException;
 import org.backendcompas.core.security.CustomUserDetails;
 import org.backendcompas.modules.recommendations.dto.AiChatRequestDto;
 import org.backendcompas.modules.recommendations.dto.AiChatResponseDto;
 import org.backendcompas.modules.recommendations.dto.AiRecommendationResponseDto;
+import org.backendcompas.modules.recommendations.model.RecommendationCategory;
 import org.backendcompas.modules.recommendations.service.AiRecommendationService;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -27,9 +27,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
-import java.util.Set;
-import java.util.TreeSet;
 
 @Tag(
         name = "AI Recommendations & Chat",
@@ -57,11 +54,6 @@ import java.util.TreeSet;
 @RequiredArgsConstructor
 @RequestMapping(value = "/api/v1/recommendations", produces = MediaType.APPLICATION_JSON_VALUE)
 public class RecommendationController {
-
-    private static final Set<String> VALID_CATEGORIES = Set.of(
-            "FOOD", "TRANSPORT", "ENTERTAINMENT", "HEALTH", "CLOTHING",
-            "EDUCATION", "UTILITIES", "PERSONAL_CARE", "SAVINGS", "OTHER"
-    );
 
     private final AiRecommendationService aiRecommendationService;
 
@@ -118,7 +110,7 @@ public class RecommendationController {
     @ApiResponse(
             responseCode = "400",
             description = """
-                    `category` is missing, blank, or not one of the accepted values:
+                    `category` is missing or not one of the accepted enum values:
                     `FOOD`, `TRANSPORT`, `ENTERTAINMENT`, `HEALTH`, `CLOTHING`,
                     `EDUCATION`, `UTILITIES`, `PERSONAL_CARE`, `SAVINGS`, `OTHER`.
                     """,
@@ -159,11 +151,12 @@ public class RecommendationController {
 
             @Parameter(
                     name = "category",
-                    description = "Budget category for recommendations. Case-insensitive.",
+                    description = "Budget category for recommendations.",
                     example = "FOOD",
-                    required = true
+                    required = true,
+                    schema = @Schema(implementation = RecommendationCategory.class)
             )
-            @RequestParam String category,
+            @RequestParam RecommendationCategory category,
 
             @Parameter(
                     name = "userNote",
@@ -175,11 +168,9 @@ public class RecommendationController {
     ) {
         requireAuthentication(userDetails);
 
-        String normalised = validateCategory(category);
-
         return ResponseEntity.ok(
                 aiRecommendationService.getContextualRecommendations(
-                        userDetails.getUserId(), normalised, userNote));
+                        userDetails.getUserId(), category.name(), userNote));
     }
 
     // =========================================================================
@@ -284,18 +275,5 @@ public class RecommendationController {
         if (userDetails == null) {
             throw new UnauthorizedException("Authentication is required");
         }
-    }
-
-    private String validateCategory(String raw) {
-        if (raw == null || raw.isBlank()) {
-            throw new BadRequestException("category must not be blank");
-        }
-        String upper = raw.trim().toUpperCase();
-        if (!VALID_CATEGORIES.contains(upper)) {
-            throw new BadRequestException(
-                    "Unknown budget category: '" + raw + "'. Valid values: "
-                    + String.join(", ", new TreeSet<>(VALID_CATEGORIES)));
-        }
-        return upper;
     }
 }
