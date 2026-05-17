@@ -36,5 +36,10 @@ app:
     secure-cookies: ${AUTH_SECURE_COOKIES:false}
     refresh-cookie-path: /api/v1/auth
   ai:
-    base-url: ${AI_BASE_URL:http://localhost:8001}
+    base-url: ${AI_BASE_URL:https://circulate-gratify-spookily.ngrok-free.dev}
     internal-secret: ${AI_INTERNAL_SECRET:dev-internal-secret}
+
+ai:
+  service:
+    url: ${AI_SERVICE_URL:${AI_BASE_URL:https://circulate-gratify-spookily.ngrok-free.dev}}
+    secret: ${AI_SERVICE_SECRET:${AI_INTERNAL_SECRET:dev-internal-secret}}
