@@ -240,76 +240,74 @@ public class OnboardingCatalogController {
                     """,
             security = @SecurityRequirement(name = "")
     )
-    @ApiResponses({
-            @ApiResponse(
-                    responseCode = "200",
-                    description = "Alphabetically sorted list of dorms for the city. Empty array if no dorms have been seeded for this city.",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            array = @ArraySchema(schema = @Schema(implementation = CatalogDormResponse.class)),
-                            examples = {
-                                    @ExampleObject(
-                                            name = "Dorms for Iași",
-                                            value = """
-                                                    [
-                                                      {
-                                                        "id": "d0000003-0000-0000-0000-000000000000",
-                                                        "name": "Camin C Tudor Vladimirescu",
-                                                        "cityId": "11111111-1111-1111-1111-111111111111"
-                                                      },
-                                                      {
-                                                        "id": "d0000001-0000-0000-0000-000000000000",
-                                                        "name": "Camin T1 Titu Maiorescu",
-                                                        "cityId": "11111111-1111-1111-1111-111111111111"
-                                                      },
-                                                      {
-                                                        "id": "d0000002-0000-0000-0000-000000000000",
-                                                        "name": "Camin T2 Titu Maiorescu",
-                                                        "cityId": "11111111-1111-1111-1111-111111111111"
-                                                      }
-                                                    ]
-                                                    """
-                                    ),
-                                    @ExampleObject(
-                                            name = "Dorms for Cluj-Napoca",
-                                            value = """
-                                                    [
-                                                      {
-                                                        "id": "d0000004-0000-0000-0000-000000000000",
-                                                        "name": "Camin Avram Iancu",
-                                                        "cityId": "22222222-2222-2222-2222-222222222222"
-                                                      },
-                                                      {
-                                                        "id": "d0000005-0000-0000-0000-000000000000",
-                                                        "name": "Camin Observator",
-                                                        "cityId": "22222222-2222-2222-2222-222222222222"
-                                                      }
-                                                    ]
-                                                    """
-                                    )
-                            }
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "400",
-                    description = "The `cityId` query parameter is missing or not a valid UUID",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ApiError.class),
-                            examples = @ExampleObject(value = """
-                                    { "status": 400, "error": "Bad Request", "message": "Required request parameter 'cityId' is not present" }
-                                    """)
-                    )
-            ),
-            @ApiResponse(
-                    responseCode = "500",
-                    description = "Unexpected server error",
-                    content = @Content(
-                            mediaType = MediaType.APPLICATION_JSON_VALUE,
-                            schema = @Schema(implementation = ApiError.class)
-                    )
+    @ApiResponse(
+            responseCode = "200",
+            description = "Alphabetically sorted list of dorms for the city. Empty array if no dorms have been seeded for this city.",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    array = @ArraySchema(schema = @Schema(implementation = CatalogDormResponse.class)),
+                    examples = {
+                            @ExampleObject(
+                                    name = "Dorms for Iași",
+                                    value = """
+                                            [
+                                              {
+                                                "id": "d0000003-0000-0000-0000-000000000000",
+                                                "name": "Camin C Tudor Vladimirescu",
+                                                "cityId": "11111111-1111-1111-1111-111111111111"
+                                              },
+                                              {
+                                                "id": "d0000001-0000-0000-0000-000000000000",
+                                                "name": "Camin T1 Titu Maiorescu",
+                                                "cityId": "11111111-1111-1111-1111-111111111111"
+                                              },
+                                              {
+                                                "id": "d0000002-0000-0000-0000-000000000000",
+                                                "name": "Camin T2 Titu Maiorescu",
+                                                "cityId": "11111111-1111-1111-1111-111111111111"
+                                              }
+                                            ]
+                                            """
+                            ),
+                            @ExampleObject(
+                                    name = "Dorms for Cluj-Napoca",
+                                    value = """
+                                            [
+                                              {
+                                                "id": "d0000004-0000-0000-0000-000000000000",
+                                                "name": "Camin Avram Iancu",
+                                                "cityId": "22222222-2222-2222-2222-222222222222"
+                                              },
+                                              {
+                                                "id": "d0000005-0000-0000-0000-000000000000",
+                                                "name": "Camin Observator",
+                                                "cityId": "22222222-2222-2222-2222-222222222222"
+                                              }
+                                            ]
+                                            """
+                            )
+                    }
             )
-    })
+    )
+    @ApiResponse(
+            responseCode = "400",
+            description = "The `cityId` query parameter is missing or not a valid UUID",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ApiError.class),
+                    examples = @ExampleObject(value = """
+                            { "status": 400, "error": "Bad Request", "message": "Required request parameter 'cityId' is not present" }
+                            """)
+            )
+    )
+    @ApiResponse(
+            responseCode = "500",
+            description = "Unexpected server error",
+            content = @Content(
+                    mediaType = MediaType.APPLICATION_JSON_VALUE,
+                    schema = @Schema(implementation = ApiError.class)
+            )
+    )
     @GetMapping("/dorms")
     public List<CatalogDormResponse> getDormsForCity(
             @Parameter(

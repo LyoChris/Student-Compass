@@ -247,6 +247,10 @@ public class MarketplaceServiceImpl implements MarketplaceService {
     }
 
     private ItemResponseDto toDto(MarketplaceItem item) {
+        Integer sellerTrustScore = userRepository.findById(item.getSellerId())
+                .map(User::getTrustScore)
+                .orElse(null);
+
         return ItemResponseDto.builder()
             .id(item.getId())
             .sellerId(item.getSellerId())
@@ -265,6 +269,7 @@ public class MarketplaceServiceImpl implements MarketplaceService {
             .imageUrls(List.copyOf(item.getImageUrls()))
             .createdAt(item.getCreatedAt())
             .updatedAt(item.getUpdatedAt())
+            .sellerTrustScore(sellerTrustScore)
             .build();
     }
 

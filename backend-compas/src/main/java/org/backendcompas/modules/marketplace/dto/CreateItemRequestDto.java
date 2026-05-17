@@ -58,7 +58,7 @@ public class CreateItemRequestDto {
     private ItemCondition itemCondition;
 
     @Size(max = 20)
-    @Pattern(regexp = "^$|\\+?[0-9]{10,15}$", message = "Contact phone must contain 10 to 15 digits and may start with +")
+    @Pattern(regexp = "^$|\\+?\\d{10,15}$", message = "Contact phone must contain 10 to 15 digits and may start with +")
     @Schema(
         description = "Optional contact phone. If omitted, the seller's account phone number is used.",
         example = "+40722123456",

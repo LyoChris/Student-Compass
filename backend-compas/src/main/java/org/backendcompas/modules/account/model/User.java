@@ -59,6 +59,9 @@ public class User {
     @JoinColumn(name = "faculty_id", nullable = false)
     private Faculty faculty;
 
+    @Column(name = "trust_score", nullable = false)
+    private Integer trustScore = 100;
+
     @Column(name = "failed_login_attempts", nullable = false)
     private Integer failedLoginAttempts = 0;
 
@@ -105,6 +108,8 @@ public class User {
     public void setCity(City city) { this.city = city; }
     public Faculty getFaculty() { return faculty; }
     public void setFaculty(Faculty faculty) { this.faculty = faculty; }
+    public Integer getTrustScore() { return trustScore; }
+    public void setTrustScore(Integer trustScore) { this.trustScore = trustScore; }
     public Integer getFailedLoginAttempts() { return failedLoginAttempts; }
     public void setFailedLoginAttempts(Integer failedLoginAttempts) { this.failedLoginAttempts = failedLoginAttempts; }
     public LocalDateTime getLockedUntil() { return lockedUntil; }

@@ -39,7 +39,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -199,10 +198,9 @@ public class MarketplaceController {
             Results are ordered newest-first. Supports pagination via `page` and `size` query parameters.
             """
     )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Listings fetched successfully",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PagedMarketplaceResponse.class))),
-        @ApiResponse(responseCode = "401", description = "Authentication is missing or invalid",
+    @ApiResponse(responseCode = "200", description = "Listings fetched successfully",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = PagedMarketplaceResponse.class)))
+    @ApiResponse(responseCode = "401", description = "Authentication is missing or invalid",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     })
     @GetMapping("/me")
@@ -221,16 +219,15 @@ public class MarketplaceController {
             **Ownership required:** The authenticated user must be the seller of this listing. Returns 403 if not.
             """
     )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Listing updated successfully",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ItemResponseDto.class))),
-        @ApiResponse(responseCode = "400", description = "Validation error in the update payload",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-        @ApiResponse(responseCode = "401", description = "Authentication is missing or invalid",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-        @ApiResponse(responseCode = "403", description = "Authenticated user is not the owner of this listing",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-        @ApiResponse(responseCode = "404", description = "Listing not found",
+    @ApiResponse(responseCode = "200", description = "Listing updated successfully",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ItemResponseDto.class)))
+    @ApiResponse(responseCode = "400", description = "Validation error in the update payload",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Authentication is missing or invalid",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "403", description = "Authenticated user is not the owner of this listing",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "404", description = "Listing not found",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     })
     @PutMapping(value = "/{id}", consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -277,16 +274,15 @@ public class MarketplaceController {
             **Ownership required:** The authenticated user must be the seller of this listing. Returns 403 if not.
             """
     )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Status changed successfully",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ItemResponseDto.class))),
-        @ApiResponse(responseCode = "400", description = "Invalid status enum value",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-        @ApiResponse(responseCode = "401", description = "Authentication is missing or invalid",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-        @ApiResponse(responseCode = "403", description = "Authenticated user is not the owner of this listing",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-        @ApiResponse(responseCode = "404", description = "Listing not found",
+    @ApiResponse(responseCode = "200", description = "Status changed successfully",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ItemResponseDto.class)))
+    @ApiResponse(responseCode = "400", description = "Invalid status enum value",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "401", description = "Authentication is missing or invalid",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "403", description = "Authenticated user is not the owner of this listing",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "404", description = "Listing not found",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     })
     @PatchMapping("/{id}/status")
@@ -325,25 +321,23 @@ public class MarketplaceController {
             There is no soft-delete or recovery path — the record is gone immediately.
             """
     )
-    @ApiResponses({
-        @ApiResponse(responseCode = "204", description = "Listing permanently deleted. No response body is returned.",
-            content = @Content),
-        @ApiResponse(responseCode = "401", description = "JWT token is missing, expired, or malformed.",
+    @ApiResponse(responseCode = "204", description = "Listing permanently deleted. No response body is returned.",
+            content = @Content)
+    @ApiResponse(responseCode = "401", description = "JWT token is missing, expired, or malformed.",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                 examples = @ExampleObject(value = """
                     {"status":401,"error":"Unauthorized","message":"Full authentication is required to access this resource"}
-                    """))),
-        @ApiResponse(responseCode = "403", description = "The authenticated user is not the seller of this listing.",
+                    """)))
+    @ApiResponse(responseCode = "403", description = "The authenticated user is not the seller of this listing.",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                 examples = @ExampleObject(value = """
                     {"status":403,"error":"Forbidden","message":"You are not the owner of this listing"}
-                    """))),
-        @ApiResponse(responseCode = "404", description = "No listing exists with the supplied UUID.",
+                    """)))
+    @ApiResponse(responseCode = "404", description = "No listing exists with the supplied UUID.",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE,
                 examples = @ExampleObject(value = """
                     {"status":404,"error":"Not Found","message":"Marketplace item not found"}
                     """)))
-    })
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> deleteItem(
@@ -370,16 +364,14 @@ public class MarketplaceController {
             **Ownership required:** The authenticated user must be the seller of this listing. Returns 403 if not.
             """
     )
-    @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Listing boosted successfully",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ItemResponseDto.class))),
-        @ApiResponse(responseCode = "401", description = "Authentication is missing or invalid",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-        @ApiResponse(responseCode = "403", description = "Authenticated user is not the owner of this listing",
-            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE)),
-        @ApiResponse(responseCode = "404", description = "Listing not found",
+    @ApiResponse(responseCode = "200", description = "Listing boosted successfully",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ItemResponseDto.class)))
+    @ApiResponse(responseCode = "401", description = "Authentication is missing or invalid",
             content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
-    })
+    @ApiResponse(responseCode = "403", description = "Authenticated user is not the owner of this listing",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
+    @ApiResponse(responseCode = "404", description = "Listing not found",
+            content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE))
     @PatchMapping("/{id}/boost")
     public ResponseEntity<ItemResponseDto> boostItem(
         @Parameter(

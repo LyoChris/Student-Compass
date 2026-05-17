@@ -74,4 +74,7 @@ public class ItemResponseDto {
 
     @Schema(description = "Timestamp when the listing was last updated.", example = "2026-05-16T10:05:12Z", requiredMode = Schema.RequiredMode.REQUIRED)
     private Instant updatedAt;
+
+    @Schema(description = "Trust score of the seller (0–100+). Indicates community-verified reliability. Scores below 30 indicate a muted/low-trust seller.", example = "87", nullable = true)
+    private Integer sellerTrustScore;
 }
