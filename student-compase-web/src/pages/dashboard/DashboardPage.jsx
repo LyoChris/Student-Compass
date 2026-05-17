@@ -4,8 +4,9 @@ import AppShell        from '../../components/layout/AppShell'
 import { useAuth }     from '../../hooks/useAuth'
 import HealthGauge     from '../../features/dashboard/HealthGauge'
 import QuickStats      from '../../features/dashboard/QuickStats'
-import AIWidget        from '../../features/dashboard/AIWidget'
-import MarketWidget    from '../../features/dashboard/MarketWidget'
+import AIWidget                from '../../features/dashboard/AIWidget'
+import AiRecommendationsWidget from '../../features/dashboard/AiRecommendationsWidget'
+import MarketWidget            from '../../features/dashboard/MarketWidget'
 import RadarWidget     from '../../features/dashboard/RadarWidget'
 import RecentActivity  from '../../features/dashboard/RecentActivity'
 import { budgetApi }      from '../../api/budgetApi'
@@ -60,8 +61,9 @@ export default function DashboardPage() {
         <HealthGauge    budget={budget}      loading={loading} />
         <QuickStats     budget={budget}      loading={loading} />
         <AIWidget />
+        <AiRecommendationsWidget />
         <MarketWidget   items={items}        loading={loading} />
-        <RadarWidget    loading={loading} />
+        <RadarWidget />
         <RecentActivity spendToday={spendToday} loading={loading} />
       </div>
     </AppShell>

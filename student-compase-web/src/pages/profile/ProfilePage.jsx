@@ -6,7 +6,7 @@ import {
   Repeat, RefreshCw, Calendar, X,
   Plus, Trash2, AlertCircle, Pencil,
   CheckCircle2, DollarSign, User,
-  TrendingUp, Package,
+  TrendingUp, Package, Lock, ArrowRight,
 } from 'lucide-react'
 import AppShell from '../../components/layout/AppShell'
 import { useAuth } from '../../hooks/useAuth'
@@ -238,21 +238,82 @@ export default function ProfilePage() {
           <div className="glass-card rounded-3xl p-5">
             <div className="flex items-center gap-2 mb-4">
               <TrendingUp size={16} className="text-green-400" />
-              <span className="text-sm font-bold text-slate-100">Monthly Budget</span>
+              <span className="text-sm font-bold text-slate-100">Monthly Income</span>
             </div>
             <p className="text-4xl font-black text-slate-100 mb-1">
               {profile?.monthlyBudget?.toLocaleString('ro-RO')}
               <span className="text-xl text-slate-400 ml-2">RON</span>
             </p>
             {profile?.fixedExpenses?.length > 0 && (
-              <div className="mt-4 space-y-2">
-                <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Fixed expenses</p>
-                {profile.fixedExpenses.map((e, i) => (
-                  <div key={i} className="flex justify-between items-center px-3 py-2.5 rounded-xl bg-slate-800/60">
-                    <span className="text-sm text-slate-300">{e.name}</span>
-                    <span className="text-sm font-bold text-slate-100">{e.amount} RON</span>
-                  </div>
-                ))}
+              <p className="text-xs text-slate-500 mt-1">
+                Disposable after fixed expenses:{' '}
+                <span className="text-purple-400 font-bold">
+                  {(profile.monthlyBudget - profile.fixedExpenses.reduce((s, e) => s + e.amount, 0)).toLocaleString('ro-RO')} RON
+                </span>
+              </p>
+            )}
+          </div>
+
+          {/* Fixed Monthly Expenses */}
+          <div className="glass-card rounded-3xl p-5">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <div className="w-7 h-7 rounded-xl bg-rose-500/15 flex items-center justify-center">
+                  <Lock size={13} className="text-rose-400" />
+                </div>
+                <span className="text-sm font-bold text-slate-100">Fixed Monthly Expenses</span>
+              </div>
+              <button
+                onClick={() => setEditing(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl glass-card text-[0.68rem] font-bold text-purple-400
+                           border-purple-500/30 hover:bg-purple-500/10 transition-all"
+              >
+                <Pencil size={11} />
+                Edit
+              </button>
+            </div>
+
+            {profile?.fixedExpenses?.length > 0 ? (
+              <>
+                <div className="space-y-2">
+                  {profile.fixedExpenses.map((e, i) => (
+                    <div key={i} className="flex items-center justify-between px-4 py-3 rounded-2xl bg-slate-800/60 border border-white/5">
+                      <div className="flex items-center gap-2.5">
+                        <span className="w-2 h-2 rounded-full bg-rose-400/60 flex-shrink-0" />
+                        <span className="text-sm text-slate-300">{e.name}</span>
+                      </div>
+                      <span className="text-sm font-black text-rose-300 tabular-nums">
+                        {Number(e.amount).toLocaleString('ro-RO')} <span className="text-xs font-bold text-slate-500">RON</span>
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Total row */}
+                <div className="flex items-center justify-between px-4 py-3 mt-2 rounded-2xl border border-rose-500/20"
+                  style={{ background: 'rgba(244,63,94,0.07)' }}>
+                  <span className="text-xs font-black text-slate-400 uppercase tracking-wider">Total Fixed</span>
+                  <span className="text-sm font-black text-rose-400 tabular-nums">
+                    {profile.fixedExpenses.reduce((s, e) => s + e.amount, 0).toLocaleString('ro-RO')}{' '}
+                    <span className="text-xs font-bold text-slate-500">RON / mo</span>
+                  </span>
+                </div>
+
+                <p className="text-[0.62rem] text-slate-600 mt-3 text-center leading-relaxed">
+                  These are automatically deducted from your income before budget categories are calculated.
+                </p>
+              </>
+            ) : (
+              <div className="flex flex-col items-center py-4 gap-3 text-center">
+                <p className="text-sm text-slate-500">No fixed expenses set yet.</p>
+                <button
+                  onClick={() => setEditing(true)}
+                  className="flex items-center gap-1.5 text-sm font-bold text-purple-400 hover:text-purple-300 transition-colors"
+                >
+                  <Plus size={14} />
+                  Add rent, subscriptions…
+                  <ArrowRight size={13} />
+                </button>
               </div>
             )}
           </div>
