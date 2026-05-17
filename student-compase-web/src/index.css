@@ -118,6 +118,23 @@ body {
   animation: confetti-fall 1.15s ease-out forwards;
 }
 
+/* ─── Radar map: custom pin animations ─────────────────── */
+@keyframes pin-pulse {
+  0%, 100% { transform: scale(1);    opacity: 1;    }
+  50%       { transform: scale(1.12); opacity: 0.88; }
+}
+
+.radar-pin-pulse {
+  animation: pin-pulse 2.2s ease-in-out infinite;
+  will-change: transform;
+}
+
+/* strip Leaflet's default white box from our custom pins */
+.radar-custom-marker {
+  background: none !important;
+  border: none !important;
+}
+
 /* ─── Safe area padding for notch devices ───────────────── */
 .safe-bottom {
   padding-bottom: max(env(safe-area-inset-bottom, 0px), 0.5rem);

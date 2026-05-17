@@ -326,8 +326,11 @@ export default function BudgetDashboard() {
   }
 
   // ── KPI derived values ────────────────────────────────────────────────────
+  const fixedTotal = Number(
+    budget?.fixedExpensesTotal ?? budget?.fixedTotal ?? 0
+  )
   const leftForMonth = budget
-    ? Number(budget.totalAllocated ?? 0) - Number(budget.totalSpent ?? 0)
+    ? Number(budget.totalAllocated ?? 0) - Number(budget.totalSpent ?? 0) - fixedTotal
     : 0
 
   const cats = budget?.categories ?? []

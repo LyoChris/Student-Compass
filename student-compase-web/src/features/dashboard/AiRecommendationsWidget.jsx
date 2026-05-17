@@ -121,12 +121,13 @@ function SourceBadge({ source }) {
 }
 
 // ── Main widget ────────────────────────────────────────────────────────────────
-export default function AiRecommendationsWidget() {
+export default function AiRecommendationsWidget({ category } = {}) {
   const [status, setStatus]   = useState('loading') // 'loading' | 'error' | 'success'
   const [data,   setData]     = useState(null)
 
   useEffect(() => {
-    recommendationsApi.getRecommendations()
+    const params = category ? { category } : {}
+    recommendationsApi.getRecommendations(params)
       .then(res => {
         setData(res.data)
         setStatus('success')
@@ -149,7 +150,7 @@ export default function AiRecommendationsWidget() {
         <div className="flex items-center gap-2">
           <Sparkles size={15} className="text-amber-400" />
           <h2 className="text-sm font-black text-slate-100 tracking-tight">
-            Smart Picks for You
+            {category ? `Smart ${category.charAt(0) + category.slice(1).toLowerCase()} Picks` : 'Smart Picks for You'}
           </h2>
         </div>
         {status === 'success' && data?.source && (

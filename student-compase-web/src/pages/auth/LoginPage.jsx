@@ -47,11 +47,13 @@ export default function LoginPage() {
         <div className="absolute -top-40 right-0 w-64 h-64 rounded-full bg-blue-500/10 blur-3xl" />
 
         <div className="relative z-10 text-center max-w-sm">
-          <div
-            className="w-24 h-24 rounded-3xl flex items-center justify-center mx-auto mb-8 shadow-2xl"
-            style={{ background: 'linear-gradient(135deg, #A855F7, #6366F1)' }}
-          >
-            <span className="text-white font-black text-4xl">S</span>
+          <div className="flex justify-center mb-8">
+            <img
+              src="/logo.png"
+              alt="StuFi"
+              className="h-36 w-auto object-contain drop-shadow-2xl"
+              draggable="false"
+            />
           </div>
           <h2 className="text-4xl font-black text-slate-100 leading-tight tracking-tight">
             Your money,<br />your rules.
@@ -73,11 +75,13 @@ export default function LoginPage() {
       {/* Right form panel */}
       <div className="flex-1 flex items-center justify-center p-6">
         <div className="w-full max-w-sm">
-          <Link to="/" className="inline-flex items-center gap-2.5 mb-10">
-            <div className="w-9 h-9 rounded-xl bg-purple-500 flex items-center justify-center shadow-lg shadow-purple-500/40">
-              <span className="text-white font-black text-base">S</span>
-            </div>
-            <span className="text-xl font-black text-slate-100">StuFi</span>
+          <Link to="/" className="inline-flex items-center mb-10">
+            <img
+              src="/logo.png"
+              alt="StuFi"
+              className="h-12 w-auto object-contain"
+              draggable="false"
+            />
           </Link>
 
           <h1 className="text-3xl font-black text-slate-100 mb-1.5 tracking-tight">Welcome back</h1>

@@ -4,34 +4,9 @@ import {
   Home, Wallet, MapPin, Sparkles, ShoppingBag,
   ListOrdered, Plus, Zap, User, LogOut, X, Menu,
 } from 'lucide-react'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
-
-const NAV_GROUPS = [
-  {
-    label: 'Main',
-    items: [
-      { to: '/dashboard',       icon: Home,        label: 'Home'         },
-      { to: '/budget',          icon: Wallet,      label: 'Budget'       },
-      { to: '/radar',           icon: MapPin,      label: 'Radar Deals'  },
-      { to: '/recommendations', icon: Sparkles,    label: 'AI Picks'     },
-    ],
-  },
-  {
-    label: 'Marketplace',
-    items: [
-      { to: '/market',            icon: ShoppingBag, label: 'Browse'       },
-      { to: '/marketplace/me',    icon: ListOrdered, label: 'My Listings'  },
-      { to: '/marketplace/sell',  icon: Plus,        label: 'Sell Item', featured: true },
-    ],
-  },
-  {
-    label: 'Tools',
-    items: [
-      { to: '/chat',    icon: Zap,  label: 'AI Chat' },
-      { to: '/profile', icon: User, label: 'Profile' },
-    ],
-  },
-]
+import LanguageSwitcher from '../common/LanguageSwitcher'
 
 function DrawerLink({ to, icon: Icon, label, featured, onClose }) {
   return (
@@ -55,10 +30,38 @@ function DrawerLink({ to, icon: Icon, label, featured, onClose }) {
 }
 
 export default function MobileNav() {
-  const [open, setOpen]   = useState(false)
-  const { user, logout }  = useAuth()
-  const navigate          = useNavigate()
-  const location          = useLocation()
+  const [open, setOpen]  = useState(false)
+  const { user, logout } = useAuth()
+  const navigate         = useNavigate()
+  const location         = useLocation()
+  const { t }            = useTranslation()
+
+  const NAV_GROUPS = [
+    {
+      label: t('nav.groups.main'),
+      items: [
+        { to: '/dashboard',       icon: Home,        label: t('nav.home')       },
+        { to: '/budget',          icon: Wallet,      label: t('nav.budget')     },
+        { to: '/radar',           icon: MapPin,      label: t('nav.radarDeals') },
+        { to: '/recommendations', icon: Sparkles,    label: t('nav.aiPicks')    },
+      ],
+    },
+    {
+      label: t('nav.groups.marketplace'),
+      items: [
+        { to: '/market',           icon: ShoppingBag, label: t('nav.browse')     },
+        { to: '/marketplace/me',   icon: ListOrdered, label: t('nav.myListings') },
+        { to: '/marketplace/sell', icon: Plus,        label: t('nav.sellItem'), featured: true },
+      ],
+    },
+    {
+      label: t('nav.groups.tools'),
+      items: [
+        { to: '/chat',    icon: Zap,  label: t('nav.aiChat')  },
+        { to: '/profile', icon: User, label: t('nav.profile') },
+      ],
+    },
+  ]
 
   // Close drawer on navigation
   useEffect(() => { setOpen(false) }, [location.pathname])
@@ -88,24 +91,26 @@ export default function MobileNav() {
       >
         {/* Logo */}
         <div className="flex items-center gap-2.5">
-          <div
-            className="w-8 h-8 rounded-xl bg-purple-500 flex items-center justify-center flex-shrink-0"
-            style={{ boxShadow: '0 0 18px rgba(168,85,247,0.5)' }}
-          >
-            <span className="text-white font-black text-sm leading-none">S</span>
-          </div>
-          <span className="text-lg font-black text-slate-100 tracking-tight">StuFi</span>
+          <img
+            src="/logo.png"
+            alt="StuFi"
+            className="h-11 w-auto object-contain"
+            draggable="false"
+          />
         </div>
 
-        {/* Hamburger */}
-        <button
-          onClick={() => setOpen(true)}
-          aria-label="Open navigation menu"
-          className="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-300
-                     hover:bg-white/8 hover:text-slate-100 active:scale-90 transition-all"
-        >
-          <Menu size={22} />
-        </button>
+        {/* Right side: language pill + hamburger */}
+        <div className="flex items-center gap-2">
+          <LanguageSwitcher variant="pill" />
+          <button
+            onClick={() => setOpen(true)}
+            aria-label={t('common.openMenu')}
+            className="w-10 h-10 rounded-2xl flex items-center justify-center text-slate-300
+                       hover:bg-white/8 hover:text-slate-100 active:scale-90 transition-all"
+          >
+            <Menu size={22} />
+          </button>
+        </div>
       </header>
 
       {/* ── Backdrop ─────────────────────────────────────────── */}
@@ -130,21 +135,21 @@ export default function MobileNav() {
                       open ? 'translate-x-0' : '-translate-x-full'
                     }`}
         style={{ zIndex: 2000 }}
-        aria-label="Navigation drawer"
+        aria-label={t('common.openMenu')}
       >
         {/* Drawer header */}
         <div className="flex items-center justify-between px-5 h-14 flex-shrink-0 border-b border-white/8">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-purple-500 flex items-center justify-center"
-              style={{ boxShadow: '0 0 18px rgba(168,85,247,0.5)' }}
-            >
-              <span className="text-white font-black text-sm leading-none">S</span>
-            </div>
-            <span className="text-lg font-black text-slate-100 tracking-tight">StuFi</span>
+            <img
+              src="/logo.png"
+              alt="StuFi"
+              className="h-11 w-auto object-contain"
+              draggable="false"
+            />
           </div>
           <button
             onClick={() => setOpen(false)}
-            aria-label="Close menu"
+            aria-label={t('common.closeMenu')}
             className="w-9 h-9 rounded-xl flex items-center justify-center text-slate-400
                        hover:bg-white/8 hover:text-slate-100 active:scale-90 transition-all"
           >
@@ -168,6 +173,11 @@ export default function MobileNav() {
           ))}
         </nav>
 
+        {/* Language switcher row */}
+        <div className="flex-shrink-0 border-t border-white/8">
+          <LanguageSwitcher variant="row" />
+        </div>
+
         {/* User card + logout */}
         <div className="flex-shrink-0 border-t border-white/8 px-3 py-4 space-y-2">
           <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-slate-800/70">
@@ -188,7 +198,7 @@ export default function MobileNav() {
                        hover:text-rose-400 hover:bg-rose-500/10 font-semibold text-sm transition-all"
           >
             <LogOut size={17} />
-            Sign Out
+            {t('common.signOut')}
           </button>
         </div>
       </aside>

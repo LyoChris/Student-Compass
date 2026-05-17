@@ -61,11 +61,8 @@ export default function LandingPage() {
 
       {/* Navigation */}
       <header className="relative z-10 flex items-center justify-between px-6 py-5 max-w-6xl mx-auto">
-        <div className="flex items-center gap-2.5">
-          <div className="w-9 h-9 rounded-xl bg-purple-500 flex items-center justify-center shadow-lg shadow-purple-500/40">
-            <span className="text-white font-black text-base">S</span>
-          </div>
-          <span className="text-xl font-black text-slate-100 tracking-tight">StuFi</span>
+        <div className="flex items-center">
+          <img src="/logo.png" alt="StuFi" className="h-12 w-auto object-contain" draggable="false" />
         </div>
         <div className="flex items-center gap-3">
           {canInstall && (
@@ -172,10 +169,8 @@ export default function LandingPage() {
             ))}
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-white/8">
-            <div className="flex items-center gap-2">
-              <div className="w-7 h-7 rounded-lg bg-purple-500 flex items-center justify-center">
-                <span className="text-white font-black text-xs">S</span>
-              </div>
+            <div className="flex items-center gap-2.5">
+              <img src="/logo.png" alt="StuFi" className="h-8 w-auto object-contain opacity-60" draggable="false" />
               <span className="text-slate-500 text-sm">2026 StuFi. All rights reserved.</span>
             </div>
             <div className="flex items-center gap-6 text-slate-600 text-sm">

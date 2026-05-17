@@ -68,19 +68,49 @@ function ErrorCard({ category, onRetry }) {
 
 // ── Source badge ───────────────────────────────────────────────────────────────
 function SourceBadge({ source }) {
+  if (source === 'gemini_fallback') return (
+    <>
+      <style>{`
+        @keyframes gemini-shimmer {
+          0%   { background-position: 0%   50%; }
+          50%  { background-position: 100% 50%; }
+          100% { background-position: 0%   50%; }
+        }
+        .gemini-badge {
+          background: linear-gradient(
+            90deg,
+            rgba(59,130,246,0.22),
+            rgba(168,85,247,0.28),
+            rgba(99,102,241,0.22)
+          );
+          background-size: 200% 200%;
+          animation: gemini-shimmer 3s ease infinite;
+          border: 1px solid rgba(99,102,241,0.45);
+          color: #a5b4fc;
+          box-shadow: 0 0 14px rgba(99,102,241,0.2);
+        }
+      `}</style>
+      <span className="gemini-badge flex items-center gap-1.5 rounded-full px-3 py-1 text-[0.68rem] font-black">
+        ✨ Recommendations by Gemini
+      </span>
+    </>
+  )
+
   if (source === 'llm') return (
     <span
       className="flex items-center gap-1.5 rounded-full border border-purple-400/30 bg-purple-500/15
                  px-3 py-1 text-[0.68rem] font-black text-purple-300"
       style={{ boxShadow: '0 0 12px rgba(168,85,247,0.25)' }}
     >
-      <Brain size={11} /> Powered by AI
+      <Brain size={11} /> Smart AI Picks
     </span>
   )
+
+  // Fallback for unknown source values
   return (
     <span className="flex items-center gap-1.5 rounded-full border border-slate-600/40 bg-slate-700/30
                      px-3 py-1 text-[0.68rem] font-black text-slate-400">
-      <Target size={11} /> Curated for you
+      <Target size={11} /> AI Picks
     </span>
   )
 }

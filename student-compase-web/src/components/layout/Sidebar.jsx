@@ -4,38 +4,41 @@ import {
   Zap, User, LogOut,
 } from 'lucide-react'
 import { NavLink, useNavigate } from 'react-router-dom'
+import { useTranslation } from 'react-i18next'
 import { useAuth } from '../../hooks/useAuth'
-
-const NAV_GROUPS = [
-  {
-    label: 'Main',
-    items: [
-      { to: '/dashboard',       icon: Home,     label: 'Home'        },
-      { to: '/budget',          icon: Wallet,   label: 'Budget'      },
-      { to: '/radar',           icon: MapPin,   label: 'Radar Deals' },
-      { to: '/recommendations', icon: Sparkles, label: 'AI Picks'    },
-    ],
-  },
-  {
-    label: 'Marketplace',
-    items: [
-      { to: '/market',            icon: ShoppingBag, label: 'Browse'      },
-      { to: '/marketplace/me',    icon: ListOrdered, label: 'My Listings' },
-      { to: '/marketplace/sell',  icon: Plus,        label: 'Sell Item',  featured: true },
-    ],
-  },
-  {
-    label: 'Tools',
-    items: [
-      { to: '/chat',    icon: Zap,  label: 'AI Chat' },
-      { to: '/profile', icon: User, label: 'Profile' },
-    ],
-  },
-]
+import LanguageSwitcher from '../common/LanguageSwitcher'
 
 export default function Sidebar() {
   const { user, logout } = useAuth()
-  const navigate = useNavigate()
+  const navigate         = useNavigate()
+  const { t }            = useTranslation()
+
+  const NAV_GROUPS = [
+    {
+      label: t('nav.groups.main'),
+      items: [
+        { to: '/dashboard',       icon: Home,        label: t('nav.home')       },
+        { to: '/budget',          icon: Wallet,      label: t('nav.budget')     },
+        { to: '/radar',           icon: MapPin,      label: t('nav.radarDeals') },
+        { to: '/recommendations', icon: Sparkles,    label: t('nav.aiPicks')    },
+      ],
+    },
+    {
+      label: t('nav.groups.marketplace'),
+      items: [
+        { to: '/market',           icon: ShoppingBag, label: t('nav.browse')      },
+        { to: '/marketplace/me',   icon: ListOrdered, label: t('nav.myListings')  },
+        { to: '/marketplace/sell', icon: Plus,        label: t('nav.sellItem'), featured: true },
+      ],
+    },
+    {
+      label: t('nav.groups.tools'),
+      items: [
+        { to: '/chat',    icon: Zap,  label: t('nav.aiChat')  },
+        { to: '/profile', icon: User, label: t('nav.profile') },
+      ],
+    },
+  ]
 
   const handleLogout = async () => {
     await logout()
@@ -48,14 +51,13 @@ export default function Sidebar() {
   return (
     <aside className="hidden md:flex flex-col w-64 h-screen fixed left-0 top-0 z-30 glass-card border-r border-white/10">
       {/* Logo */}
-      <div className="flex items-center gap-3 px-6 h-16 flex-shrink-0 border-b border-white/8">
-        <div
-          className="w-9 h-9 rounded-xl bg-purple-500 flex items-center justify-center flex-shrink-0"
-          style={{ boxShadow: '0 0 20px rgba(168,85,247,0.45)' }}
-        >
-          <span className="text-white font-black text-base leading-none">S</span>
-        </div>
-        <span className="text-xl font-black text-slate-100 tracking-tight">StuFi</span>
+      <div className="flex items-center px-5 h-16 flex-shrink-0 border-b border-white/8">
+        <img
+          src="/logo.png"
+          alt="StuFi"
+          className="h-12 w-auto object-contain"
+          draggable="false"
+        />
       </div>
 
       {/* Navigation */}
@@ -89,8 +91,16 @@ export default function Sidebar() {
         ))}
       </nav>
 
+      {/* Language switcher */}
+      <div className="flex-shrink-0 border-t border-white/8 px-3 pt-3 pb-1 flex items-center justify-between">
+        <span className="text-[0.62rem] font-black text-slate-600 uppercase tracking-widest px-1">
+          {t('common.language')}
+        </span>
+        <LanguageSwitcher variant="pill" />
+      </div>
+
       {/* User card + logout */}
-      <div className="flex-shrink-0 border-t border-white/8 px-3 py-4 space-y-2">
+      <div className="flex-shrink-0 px-3 py-3 space-y-2">
         <div className="flex items-center gap-3 px-4 py-3 rounded-2xl bg-slate-800/60">
           <div className="w-9 h-9 rounded-full bg-purple-500/20 border border-purple-500/40 flex items-center justify-center flex-shrink-0">
             <span className="text-purple-400 font-bold text-sm">{initials}</span>
@@ -109,7 +119,7 @@ export default function Sidebar() {
                      hover:text-rose-400 hover:bg-rose-500/10 font-semibold text-sm transition-all"
         >
           <LogOut size={17} />
-          Sign Out
+          {t('common.signOut')}
         </button>
       </div>
     </aside>

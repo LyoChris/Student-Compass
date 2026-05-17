@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
-import { MapContainer, TileLayer, CircleMarker, Tooltip, useMapEvents, useMap } from 'react-leaflet'
+import { MapContainer, TileLayer, Marker, Tooltip, useMapEvents, useMap } from 'react-leaflet'
+import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
 import {
   Plus, Map as MapIcon, List, Loader2, RefreshCw,
@@ -28,6 +29,68 @@ const CATEGORY_META = {
   OTHER:  { color: '#A855F7', bg: 'bg-purple-500/15', text: 'text-purple-300', border: 'border-purple-500/30' },
 }
 
+
+// ── Custom pin config ─────────────────────────────────────────────────────────
+const PIN_META = {
+  FOOD:   { emoji: '🍔', color: '#F97316', glow: 'rgba(249,115,22,0.55)'   },
+  HOME:   { emoji: '🏠', color: '#3B82F6', glow: 'rgba(59,130,246,0.55)'   },
+  SOCIAL: { emoji: '🎉', color: '#A855F7', glow: 'rgba(168,85,247,0.55)'   },
+  TECH:   { emoji: '💻', color: '#06B6D4', glow: 'rgba(6,182,212,0.55)'    },
+  OTHER:  { emoji: '🎁', color: '#94A3B8', glow: 'rgba(148,163,184,0.45)'  },
+}
+
+// Pin dimensions
+const PIN_W = 44   // circle diameter
+const PIN_H = 55   // circle + triangle tip total height
+
+function createPinIcon(category) {
+  const { emoji, color, glow } = PIN_META[category] ?? PIN_META.OTHER
+
+  const html = `
+    <div style="
+      position:relative;
+      width:${PIN_W}px;
+      height:${PIN_H}px;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+    ">
+      <div class="radar-pin-pulse" style="
+        width:${PIN_W}px;
+        height:${PIN_W}px;
+        border-radius:50%;
+        background:rgba(10,15,30,0.94);
+        backdrop-filter:blur(10px);
+        -webkit-backdrop-filter:blur(10px);
+        border:2.5px solid ${color};
+        box-shadow:0 0 14px ${glow},0 6px 22px rgba(0,0,0,0.65);
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        font-size:19px;
+        line-height:1;
+        cursor:pointer;
+      ">${emoji}</div>
+      <div style="
+        width:0;
+        height:0;
+        border-left:7px solid transparent;
+        border-right:7px solid transparent;
+        border-top:12px solid ${color};
+        margin-top:-2px;
+        filter:drop-shadow(0 3px 5px ${glow});
+      "></div>
+    </div>
+  `
+
+  return L.divIcon({
+    html,
+    iconSize:     [PIN_W, PIN_H],
+    iconAnchor:   [PIN_W / 2, PIN_H],   // tip of triangle = exact lat/lng
+    popupAnchor:  [0, -PIN_H],
+    className:    'radar-custom-marker leaflet-interactive',
+  })
+}
 
 function timeLeft(expiresAt) {
   if (!expiresAt) return ''
@@ -158,7 +221,8 @@ export default function RadarPage() {
 
   return (
     <AppShell>
-      <div className="flex flex-col" style={{ height: 'calc(100dvh - 0px)' }}>
+      {/* h-[calc(100dvh-3.5rem)]: subtract 56px mobile header added by AppShell's pt-14 wrapper */}
+      <div className="flex flex-col h-[calc(100dvh-3.5rem)] md:h-dvh">
         {/* Top bar */}
         <div className="px-4 pt-6 pb-3 flex items-center justify-between flex-shrink-0">
           <div>
@@ -234,25 +298,19 @@ export default function RadarPage() {
                 <MapCenterTracker onCenter={setMapCenter} />
                 <FlyTo target={gpsTarget} />
                 {visibleDeals.map(deal => {
-                  const color = CATEGORY_META[deal.category]?.color ?? '#A855F7'
-                  const ttl   = timeLeft(deal.expiresAt)
-                  const score = Number(deal.upvotes ?? 0) - Number(deal.downvotes ?? 0)
+                  const pinColor = PIN_META[deal.category]?.color ?? '#A855F7'
+                  const ttl      = timeLeft(deal.expiresAt)
+                  const score    = Number(deal.upvotes ?? 0) - Number(deal.downvotes ?? 0)
                   return (
-                    <CircleMarker
+                    <Marker
                       key={deal.id}
-                      center={[deal.latitude, deal.longitude]}
-                      radius={11}
-                      pathOptions={{
-                        fillColor:   color,
-                        fillOpacity: 0.92,
-                        color:       'rgba(255,255,255,0.35)',
-                        weight:      2,
-                      }}
+                      position={[deal.latitude, deal.longitude]}
+                      icon={createPinIcon(deal.category)}
                       eventHandlers={{ click: () => setFullDeal(deal) }}
                     >
-                      <Tooltip direction="top" offset={[0, -14]} opacity={1} className="radar-tooltip">
+                      <Tooltip direction="top" offset={[0, -(PIN_H + 4)]} opacity={1} className="radar-tooltip">
                         <div style={{ fontFamily: 'inherit' }}>
-                          <div style={{ fontSize: '10px', fontWeight: 800, color, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>
+                          <div style={{ fontSize: '10px', fontWeight: 800, color: pinColor, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '2px' }}>
                             {deal.category}
                           </div>
                           <div style={{ fontSize: '12px', fontWeight: 700, color: '#f1f5f9', maxWidth: '160px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
@@ -264,7 +322,7 @@ export default function RadarPage() {
                           </div>
                         </div>
                       </Tooltip>
-                    </CircleMarker>
+                    </Marker>
                   )
                 })}
               </MapContainer>
