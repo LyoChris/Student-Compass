@@ -43,3 +43,7 @@ ai:
   service:
     url: ${AI_SERVICE_URL:${AI_BASE_URL:https://circulate-gratify-spookily.ngrok-free.dev}}
     secret: ${AI_SERVICE_SECRET:${AI_INTERNAL_SECRET:dev-internal-secret}}
+
+gemini:
+  api:
+    key: ${GEMINI_API_KEY}

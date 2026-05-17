@@ -32,11 +32,11 @@ public record AiRecommendationResponseDto(
         UUID userId,
 
         @NotBlank(message = "source is required")
-        @Pattern(regexp = "llm|fallback", message = "source must be either llm or fallback")
+        @Pattern(regexp = "llm|fallback|gemini_fallback", message = "source must be llm, fallback, or gemini_fallback")
         @Schema(
-                description = "`llm` when recommendations were produced by the Ollama-backed orchestration path; `fallback` when the Python service returned a deterministic backup list.",
+                description = "`llm` — primary Ollama path; `fallback` — Python service deterministic backup; `gemini_fallback` — Google Gemini HA fallback activated when the primary service was unreachable.",
                 example = "llm",
-                allowableValues = {"llm", "fallback"},
+                allowableValues = {"llm", "fallback", "gemini_fallback"},
                 requiredMode = Schema.RequiredMode.REQUIRED
         )
         String source,
