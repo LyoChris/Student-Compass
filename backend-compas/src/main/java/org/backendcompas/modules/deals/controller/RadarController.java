@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.media.ArraySchema;
 import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -70,16 +69,14 @@ public class RadarController {
                     from the active feed automatically.
                     """
     )
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Deal reported successfully.",
-                    content = @Content(schema = @Schema(implementation = RadarDealResponseDto.class))),
-            @ApiResponse(responseCode = "400", description = "Validation error (blank title, past expiresAt, invalid coordinates, etc.).",
-                    content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError"))),
-            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT.",
-                    content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError"))),
-            @ApiResponse(responseCode = "403", description = "Caller is muted (trust score < 30).",
+    @ApiResponse(responseCode = "201", description = "Deal reported successfully.",
+                    content = @Content(schema = @Schema(implementation = RadarDealResponseDto.class)))
+    @ApiResponse(responseCode = "400", description = "Validation error (blank title, past expiresAt, invalid coordinates, etc.).",
                     content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError")))
-    })
+    @ApiResponse(responseCode = "401", description = "Missing or invalid JWT.",
+                    content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError")))
+    @ApiResponse(responseCode = "403", description = "Caller is muted (trust score < 30).",
+                    content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError")))
     public ResponseEntity<RadarDealResponseDto> createDeal(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Valid @RequestBody RadarDealCreateRequestDto request
@@ -103,12 +100,10 @@ public class RadarController {
                     Deals are returned in insertion order (newest first from the DB index).
                     """
     )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Active deals returned.",
-                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = RadarDealResponseDto.class)))),
-            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT.",
+    @ApiResponse(responseCode = "200", description = "Active deals returned.",
+                    content = @Content(array = @ArraySchema(schema = @Schema(implementation = RadarDealResponseDto.class))))
+    @ApiResponse(responseCode = "401", description = "Missing or invalid JWT.",
                     content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError")))
-    })
     public ResponseEntity<List<RadarDealResponseDto>> getActiveDeals(
             @Parameter(description = "Centre latitude for radius filtering (-90 to 90).", example = "44.436512")
             @RequestParam(required = false) Double lat,
@@ -127,14 +122,12 @@ public class RadarController {
             summary = "Get deal details",
             description = "Returns full details of a single deal including all comments. Works for both ACTIVE and EXPIRED deals."
     )
-    @ApiResponses({
-            @ApiResponse(responseCode = "200", description = "Deal found.",
-                    content = @Content(schema = @Schema(implementation = RadarDealResponseDto.class))),
-            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT.",
-                    content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError"))),
-            @ApiResponse(responseCode = "404", description = "Deal not found.",
+    @ApiResponse(responseCode = "200", description = "Deal found.",
+                    content = @Content(schema = @Schema(implementation = RadarDealResponseDto.class)))
+    @ApiResponse(responseCode = "401", description = "Missing or invalid JWT.",
                     content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError")))
-    })
+    @ApiResponse(responseCode = "404", description = "Deal not found.",
+                    content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError")))
     public ResponseEntity<RadarDealResponseDto> getDeal(
             @Parameter(description = "UUID of the deal.", required = true)
             @PathVariable UUID dealId
@@ -161,17 +154,15 @@ public class RadarController {
                     Concurrent votes are serialised with pessimistic row-level locking.
                     """
     )
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Vote recorded."),
-            @ApiResponse(responseCode = "400", description = "Missing or invalid voteType.",
-                    content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError"))),
-            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT.",
-                    content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError"))),
-            @ApiResponse(responseCode = "404", description = "Deal not found.",
-                    content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError"))),
-            @ApiResponse(responseCode = "409", description = "Caller has already voted on this deal.",
+    @ApiResponse(responseCode = "204", description = "Vote recorded.")
+    @ApiResponse(responseCode = "400", description = "Missing or invalid voteType.",
                     content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError")))
-    })
+    @ApiResponse(responseCode = "401", description = "Missing or invalid JWT.",
+                    content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError")))
+    @ApiResponse(responseCode = "404", description = "Deal not found.",
+                    content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError")))
+    @ApiResponse(responseCode = "409", description = "Caller has already voted on this deal.",
+                    content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError")))
     public ResponseEntity<Void> voteOnDeal(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Parameter(description = "UUID of the deal to vote on.", required = true)
@@ -194,18 +185,16 @@ public class RadarController {
                     **Mute guard**: callers with `trust_score < 30` receive `403 Forbidden`.
                     """
     )
-    @ApiResponses({
-            @ApiResponse(responseCode = "201", description = "Comment posted.",
-                    content = @Content(schema = @Schema(implementation = RadarCommentResponseDto.class))),
-            @ApiResponse(responseCode = "400", description = "Blank or oversized content.",
-                    content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError"))),
-            @ApiResponse(responseCode = "401", description = "Missing or invalid JWT.",
-                    content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError"))),
-            @ApiResponse(responseCode = "403", description = "Caller is muted (trust score < 30).",
-                    content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError"))),
-            @ApiResponse(responseCode = "404", description = "Deal not found.",
+    @ApiResponse(responseCode = "201", description = "Comment posted.",
+                    content = @Content(schema = @Schema(implementation = RadarCommentResponseDto.class)))
+    @ApiResponse(responseCode = "400", description = "Blank or oversized content.",
                     content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError")))
-    })
+    @ApiResponse(responseCode = "401", description = "Missing or invalid JWT.",
+                    content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError")))
+    @ApiResponse(responseCode = "403", description = "Caller is muted (trust score < 30).",
+                    content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError")))
+    @ApiResponse(responseCode = "404", description = "Deal not found.",
+                    content = @Content(schema = @Schema(ref = "#/components/schemas/ApiError")))
     public ResponseEntity<RadarCommentResponseDto> addComment(
             @AuthenticationPrincipal CustomUserDetails userDetails,
             @Parameter(description = "UUID of the deal to comment on.", required = true)

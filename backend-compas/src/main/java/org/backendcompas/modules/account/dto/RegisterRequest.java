@@ -28,7 +28,7 @@ public record RegisterRequest(
         @Schema(description = "Primary contact phone number", example = "+40722123456")
         @NotBlank(message = "Phone number is required")
         @Size(max = 20, message = "Phone number must be at most 20 characters")
-        @Pattern(regexp = "^\\+?[0-9]{10,15}$", message = "Phone number must contain 10 to 15 digits and may start with +")
+        @Pattern(regexp = "^\\+?\\d{10,15}$", message = "Phone number must contain 10 to 15 digits and may start with +")
         String phoneNumber,
 
         @Schema(description = "Email address — must be unique across all accounts", example = "ana.popescu@student-compass.ro")

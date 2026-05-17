@@ -1,4 +1,4 @@
 package org.backendcompas.modules.budget.model;
 
-/** Retained as an empty stub — superseded by {@link BudgetCategory}. */
-public class BudgetPlanCategoryEntry {}
+/** Marker type retained for backward compatibility with older budget-plan category references. */
+public interface BudgetPlanCategoryEntry {}

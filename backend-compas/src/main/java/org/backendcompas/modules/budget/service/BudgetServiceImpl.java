@@ -45,6 +45,14 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class BudgetServiceImpl implements BudgetService {
 
+    private static final String FOOD = "FOOD";
+    private static final String TRANSPORT = "TRANSPORT";
+    private static final String HOUSING = "HOUSING";
+    private static final String SUPPLIES = "SUPPLIES";
+    private static final String PERSONAL = "PERSONAL";
+    private static final String LEISURE = "LEISURE";
+    private static final String SAVINGS = "SAVINGS";
+
     // -------------------------------------------------------------------------
     // Keyword → category routing table (checked in declaration order; first match wins)
     // -------------------------------------------------------------------------
@@ -52,80 +60,80 @@ public class BudgetServiceImpl implements BudgetService {
 
     static {
         // Food & drink
-        KEYWORD_MAP.put("kaufland",    "FOOD");
-        KEYWORD_MAP.put("lidl",        "FOOD");
-        KEYWORD_MAP.put("auchan",      "FOOD");
-        KEYWORD_MAP.put("carrefour",   "FOOD");
-        KEYWORD_MAP.put("mega image",  "FOOD");
-        KEYWORD_MAP.put("profi",       "FOOD");
-        KEYWORD_MAP.put("penny",       "FOOD");
-        KEYWORD_MAP.put("glovo",       "FOOD");
-        KEYWORD_MAP.put("bolt food",   "FOOD");
-        KEYWORD_MAP.put("tazz",        "FOOD");
-        KEYWORD_MAP.put("restaurant",  "FOOD");
-        KEYWORD_MAP.put("cafenea",     "FOOD");
-        KEYWORD_MAP.put("bistro",      "FOOD");
-        KEYWORD_MAP.put("mcdonald",    "FOOD");
-        KEYWORD_MAP.put("kfc",         "FOOD");
+        KEYWORD_MAP.put("kaufland",    FOOD);
+        KEYWORD_MAP.put("lidl",        FOOD);
+        KEYWORD_MAP.put("auchan",      FOOD);
+        KEYWORD_MAP.put("carrefour",   FOOD);
+        KEYWORD_MAP.put("mega image",  FOOD);
+        KEYWORD_MAP.put("profi",       FOOD);
+        KEYWORD_MAP.put("penny",       FOOD);
+        KEYWORD_MAP.put("glovo",       FOOD);
+        KEYWORD_MAP.put("bolt food",   FOOD);
+        KEYWORD_MAP.put("tazz",        FOOD);
+        KEYWORD_MAP.put("restaurant",  FOOD);
+        KEYWORD_MAP.put("cafenea",     FOOD);
+        KEYWORD_MAP.put("bistro",      FOOD);
+        KEYWORD_MAP.put("mcdonald",    FOOD);
+        KEYWORD_MAP.put("kfc",         FOOD);
         // Transport (checked before "bolt" to catch "bolt food" first)
-        KEYWORD_MAP.put("uber",        "TRANSPORT");
-        KEYWORD_MAP.put("bolt",        "TRANSPORT");
-        KEYWORD_MAP.put("stb ",        "TRANSPORT");
-        KEYWORD_MAP.put("ratb",        "TRANSPORT");
-        KEYWORD_MAP.put("metrorex",    "TRANSPORT");
-        KEYWORD_MAP.put("petrom",      "TRANSPORT");
-        KEYWORD_MAP.put("omv",         "TRANSPORT");
-        KEYWORD_MAP.put("mol ",        "TRANSPORT");
-        KEYWORD_MAP.put("benzinarie",  "TRANSPORT");
-        KEYWORD_MAP.put("parking",     "TRANSPORT");
+        KEYWORD_MAP.put("uber",        TRANSPORT);
+        KEYWORD_MAP.put("bolt",        TRANSPORT);
+        KEYWORD_MAP.put("stb ",        TRANSPORT);
+        KEYWORD_MAP.put("ratb",        TRANSPORT);
+        KEYWORD_MAP.put("metrorex",    TRANSPORT);
+        KEYWORD_MAP.put("petrom",      TRANSPORT);
+        KEYWORD_MAP.put("omv",         TRANSPORT);
+        KEYWORD_MAP.put("mol ",        TRANSPORT);
+        KEYWORD_MAP.put("benzinarie",  TRANSPORT);
+        KEYWORD_MAP.put("parking",     TRANSPORT);
         // Housing & utilities
-        KEYWORD_MAP.put("chirie",      "HOUSING");
-        KEYWORD_MAP.put("rent",        "HOUSING");
-        KEYWORD_MAP.put("utilit",      "HOUSING");
-        KEYWORD_MAP.put("enel",        "HOUSING");
-        KEYWORD_MAP.put("romgaz",      "HOUSING");
-        KEYWORD_MAP.put("rcs",         "HOUSING");
-        KEYWORD_MAP.put("rds",         "HOUSING");
-        KEYWORD_MAP.put("digi",        "HOUSING");
-        KEYWORD_MAP.put("orange",      "HOUSING");
-        KEYWORD_MAP.put("vodafone",    "HOUSING");
+        KEYWORD_MAP.put("chirie",      HOUSING);
+        KEYWORD_MAP.put("rent",        HOUSING);
+        KEYWORD_MAP.put("utilit",      HOUSING);
+        KEYWORD_MAP.put("enel",        HOUSING);
+        KEYWORD_MAP.put("romgaz",      HOUSING);
+        KEYWORD_MAP.put("rcs",         HOUSING);
+        KEYWORD_MAP.put("rds",         HOUSING);
+        KEYWORD_MAP.put("digi",        HOUSING);
+        KEYWORD_MAP.put("orange",      HOUSING);
+        KEYWORD_MAP.put("vodafone",    HOUSING);
         // Personal care
-        KEYWORD_MAP.put("farmaci",     "PERSONAL");
-        KEYWORD_MAP.put("sensiblu",    "PERSONAL");
-        KEYWORD_MAP.put("catena",      "PERSONAL");
-        KEYWORD_MAP.put("dm ",         "PERSONAL");
-        KEYWORD_MAP.put("cosmet",      "PERSONAL");
-        KEYWORD_MAP.put("salon",       "PERSONAL");
-        KEYWORD_MAP.put("coafura",     "PERSONAL");
-        KEYWORD_MAP.put("frizerie",    "PERSONAL");
+        KEYWORD_MAP.put("farmaci",     PERSONAL);
+        KEYWORD_MAP.put("sensiblu",    PERSONAL);
+        KEYWORD_MAP.put("catena",      PERSONAL);
+        KEYWORD_MAP.put("dm ",         PERSONAL);
+        KEYWORD_MAP.put("cosmet",      PERSONAL);
+        KEYWORD_MAP.put("salon",       PERSONAL);
+        KEYWORD_MAP.put("coafura",     PERSONAL);
+        KEYWORD_MAP.put("frizerie",    PERSONAL);
         // Leisure & entertainment
-        KEYWORD_MAP.put("cinema",      "LEISURE");
-        KEYWORD_MAP.put("netflix",     "LEISURE");
-        KEYWORD_MAP.put("spotify",     "LEISURE");
-        KEYWORD_MAP.put("hbo",         "LEISURE");
-        KEYWORD_MAP.put("steam",       "LEISURE");
-        KEYWORD_MAP.put("club",        "LEISURE");
-        KEYWORD_MAP.put("concert",     "LEISURE");
-        KEYWORD_MAP.put("bilet",       "LEISURE");
+        KEYWORD_MAP.put("cinema",      LEISURE);
+        KEYWORD_MAP.put("netflix",     LEISURE);
+        KEYWORD_MAP.put("spotify",     LEISURE);
+        KEYWORD_MAP.put("hbo",         LEISURE);
+        KEYWORD_MAP.put("steam",       LEISURE);
+        KEYWORD_MAP.put("club",        LEISURE);
+        KEYWORD_MAP.put("concert",     LEISURE);
+        KEYWORD_MAP.put("bilet",       LEISURE);
         // Supplies
-        KEYWORD_MAP.put("librarie",    "SUPPLIES");
-        KEYWORD_MAP.put("papetarie",   "SUPPLIES");
-        KEYWORD_MAP.put("printing",    "SUPPLIES");
-        KEYWORD_MAP.put("xerox",       "SUPPLIES");
-        KEYWORD_MAP.put("copiat",      "SUPPLIES");
+        KEYWORD_MAP.put("librarie",    SUPPLIES);
+        KEYWORD_MAP.put("papetarie",   SUPPLIES);
+        KEYWORD_MAP.put("printing",    SUPPLIES);
+        KEYWORD_MAP.put("xerox",       SUPPLIES);
+        KEYWORD_MAP.put("copiat",      SUPPLIES);
     }
 
     // Default weight matrix (sums to 1.0)
     private static final Map<String, Double> DEFAULT_WEIGHTS = new LinkedHashMap<>();
 
     static {
-        DEFAULT_WEIGHTS.put("FOOD",      0.30);
-        DEFAULT_WEIGHTS.put("TRANSPORT", 0.12);
-        DEFAULT_WEIGHTS.put("HOUSING",   0.15);
-        DEFAULT_WEIGHTS.put("SUPPLIES",  0.08);
-        DEFAULT_WEIGHTS.put("PERSONAL",  0.10);
-        DEFAULT_WEIGHTS.put("LEISURE",   0.10);
-        DEFAULT_WEIGHTS.put("SAVINGS",   0.15);
+        DEFAULT_WEIGHTS.put(FOOD,      0.30);
+        DEFAULT_WEIGHTS.put(TRANSPORT, 0.12);
+        DEFAULT_WEIGHTS.put(HOUSING,   0.15);
+        DEFAULT_WEIGHTS.put(SUPPLIES,  0.08);
+        DEFAULT_WEIGHTS.put(PERSONAL,  0.10);
+        DEFAULT_WEIGHTS.put(LEISURE,   0.10);
+        DEFAULT_WEIGHTS.put(SAVINGS,   0.15);
     }
 
     private final MonthlyBudgetRepository budgetRepository;
@@ -293,48 +301,39 @@ public class BudgetServiceImpl implements BudgetService {
             String line;
             while ((line = reader.readLine()) != null) {
                 line = line.strip();
-                if (line.isBlank()) {
-                    continue;
+                if (!line.isBlank()) {
+                    String[] cols = parseCsvLine(line);
+                    if (cols.length > descIdx) {
+                        String desc = cols[descIdx].strip();
+                        BigDecimal amount = extractAmount(cols, amountIdx);
+                        boolean validTransaction = !desc.isBlank() && amount != null && amount.signum() > 0;
+
+                        if (validTransaction) {
+                            String detectedCategory = detectCategory(desc);
+                            Optional<BudgetCategory> catOpt = categoryRepository
+                                    .findByBudgetIdAndNameIgnoreCase(budgetId, detectedCategory);
+
+                            boolean persisted = false;
+                            if (catOpt.isPresent()) {
+                                BudgetCategory cat = catOpt.get();
+
+                                Transaction tx = new Transaction();
+                                tx.setUserId(userId);
+                                tx.setCategory(cat);
+                                tx.setAmount(amount);
+                                tx.setDescription(desc);
+                                tx.setTransactionDate(LocalDateTime.now());
+                                transactionRepository.save(tx);
+
+                                cat.setSpentAmount(cat.getSpentAmount().add(amount));
+                                categoryRepository.save(cat);
+                                persisted = true;
+                            }
+
+                            results.add(new ParsedTransactionDto(desc, amount, detectedCategory, persisted));
+                        }
+                    }
                 }
-
-                String[] cols = parseCsvLine(line);
-                if (cols.length <= descIdx) {
-                    continue;
-                }
-
-                String desc = cols[descIdx].strip();
-                if (desc.isBlank()) {
-                    continue;
-                }
-
-                BigDecimal amount = extractAmount(cols, amountIdx);
-                if (amount == null || amount.signum() <= 0) {
-                    continue; // skip income / unparseable rows
-                }
-
-                String detectedCategory = detectCategory(desc);
-
-                Optional<BudgetCategory> catOpt = categoryRepository
-                        .findByBudgetIdAndNameIgnoreCase(budgetId, detectedCategory);
-
-                boolean persisted = false;
-                if (catOpt.isPresent()) {
-                    BudgetCategory cat = catOpt.get();
-
-                    Transaction tx = new Transaction();
-                    tx.setUserId(userId);
-                    tx.setCategory(cat);
-                    tx.setAmount(amount);
-                    tx.setDescription(desc);
-                    tx.setTransactionDate(LocalDateTime.now());
-                    transactionRepository.save(tx);
-
-                    cat.setSpentAmount(cat.getSpentAmount().add(amount));
-                    categoryRepository.save(cat);
-                    persisted = true;
-                }
-
-                results.add(new ParsedTransactionDto(desc, amount, detectedCategory, persisted));
             }
 
         } catch (IOException e) {
@@ -522,25 +521,25 @@ public class BudgetServiceImpl implements BudgetService {
         Map<String, Double> w = new LinkedHashMap<>(DEFAULT_WEIGHTS);
 
         switch (profile.getEatingHabit()) {
-            case COOKING     -> w.computeIfPresent("FOOD", (k, v) -> v * 0.85);
+            case COOKING     -> w.computeIfPresent(FOOD, (k, v) -> v * 0.85);
             case EATING_OUT,
-                 DELIVERY    -> w.computeIfPresent("FOOD", (k, v) -> v * 1.25);
+                 DELIVERY    -> w.computeIfPresent(FOOD, (k, v) -> v * 1.25);
             default          -> { /* CANTEEN — no adjustment */ }
         }
 
         switch (profile.getLivingArea()) {
             case DORMITORY -> {
-                w.computeIfPresent("HOUSING",   (k, v) -> v * 0.40);
-                w.computeIfPresent("TRANSPORT", (k, v) -> v * 0.70);
+                w.computeIfPresent(HOUSING, (k, v) -> v * 0.40);
+                w.computeIfPresent(TRANSPORT, (k, v) -> v * 0.70);
             }
-            case RENT      -> w.computeIfPresent("HOUSING",   (k, v) -> v * 1.30);
-            case COMMUTER  -> w.computeIfPresent("TRANSPORT", (k, v) -> v * 1.60);
+            case RENT      -> w.computeIfPresent(HOUSING, (k, v) -> v * 1.30);
+            case COMMUTER  -> w.computeIfPresent(TRANSPORT, (k, v) -> v * 1.60);
             default        -> { /* OWN_HOME — no adjustment */ }
         }
 
         switch (profile.getHomePackageFrequency()) {
-            case WEEKLY -> w.computeIfPresent("FOOD", (k, v) -> v * 0.80);
-            case NONE   -> w.computeIfPresent("FOOD", (k, v) -> v * 1.10);
+            case WEEKLY -> w.computeIfPresent(FOOD, (k, v) -> v * 0.80);
+            case NONE   -> w.computeIfPresent(FOOD, (k, v) -> v * 1.10);
             default     -> { /* BI_WEEKLY / MONTHLY */ }
         }
 
@@ -609,6 +608,6 @@ public class BudgetServiceImpl implements BudgetService {
                 return entry.getValue();
             }
         }
-        return "PERSONAL"; // default fallback
+        return PERSONAL;
     }
 }

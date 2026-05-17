@@ -8,8 +8,11 @@ import org.backendcompas.core.security.JwtUtil;
 import org.backendcompas.modules.account.model.User;
 import org.backendcompas.modules.account.model.UserRole;
 import org.backendcompas.modules.account.model.UserStatus;
+import org.backendcompas.modules.account.repository.RefreshTokenRepository;
+import org.backendcompas.modules.account.repository.RevokedAccessTokenRepository;
 import org.backendcompas.modules.account.repository.UserRepository;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
@@ -41,6 +44,12 @@ class AuthControllerIntegrationTest {
     @Autowired
     private UserRepository userRepository;
 
+        @Autowired
+        private RefreshTokenRepository refreshTokenRepository;
+
+        @Autowired
+        private RevokedAccessTokenRepository revokedAccessTokenRepository;
+
     @Autowired
     private CityRepository cityRepository;
 
@@ -53,12 +62,21 @@ class AuthControllerIntegrationTest {
     @Autowired
     private JwtUtil jwtUtil;
 
+        @BeforeEach
+        void resetUsers() {
+                refreshTokenRepository.deleteAll();
+                revokedAccessTokenRepository.deleteAll();
+                userRepository.deleteAll();
+        }
+
     @Test
     void registerUserReturnsTokensAndProfile() throws Exception {
         String payload = """
                 {
                   "firstName": "Ana",
                   "lastName": "Popescu",
+                                                                        "age": 20,
+                                                                        "phoneNumber": "+40722123456",
                   "email": "ana.popescu@student-compass.test",
                   "password": "Password123!",
                   "confirmPassword": "Password123!",
@@ -86,6 +104,8 @@ class AuthControllerIntegrationTest {
                 {
                   "firstName": "Mihai",
                   "lastName": "Ionescu",
+                                                                        "age": 21,
+                                                                        "phoneNumber": "+40722123457",
                   "email": "mihai.ionescu@student-compass.test",
                   "password": "Password123!",
                   "confirmPassword": "Password123!",
@@ -109,6 +129,8 @@ class AuthControllerIntegrationTest {
         User admin = new User();
         admin.setFirstName("Admin");
         admin.setLastName("User");
+        admin.setAge(30);
+        admin.setPhoneNumber("+40722123458");
         admin.setEmail("admin@student-compass.test");
         admin.setPasswordHash(passwordEncoder.encode("Password123!"));
         admin.setRole(UserRole.ADMIN);

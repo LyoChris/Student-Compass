@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -121,8 +120,7 @@ public class AiChatController {
                     )
             )
     )
-    @ApiResponses({
-            @ApiResponse(
+    @ApiResponse(
                     responseCode = "200",
                     description = "AI reply returned and exchange persisted. If the AI service was unreachable, a fallback reply is returned instead of an error.",
                     content = @Content(
@@ -149,8 +147,8 @@ public class AiChatController {
                                     )
                             }
                     )
-            ),
-            @ApiResponse(
+            )
+    @ApiResponse(
                     responseCode = "400",
                     description = "Validation failed — message is blank or exceeds 4 000 characters",
                     content = @Content(
@@ -171,8 +169,8 @@ public class AiChatController {
                                     )
                             }
                     )
-            ),
-            @ApiResponse(
+            )
+    @ApiResponse(
                     responseCode = "401",
                     description = "No valid Bearer token provided in the `Authorization` header",
                     content = @Content(
@@ -182,8 +180,8 @@ public class AiChatController {
                                     { "status": 401, "error": "Unauthorized", "message": "Full authentication is required" }
                                     """)
                     )
-            ),
-            @ApiResponse(
+            )
+    @ApiResponse(
                     responseCode = "500",
                     description = "Unexpected server error (distinct from the AI service being unavailable — that is a 200 fallback)",
                     content = @Content(
@@ -191,7 +189,6 @@ public class AiChatController {
                             schema = @Schema(implementation = ApiError.class)
                     )
             )
-    })
     @PostMapping
     public ResponseEntity<ChatResponseDto> chat(
             @AuthenticationPrincipal CustomUserDetails principal,
@@ -221,8 +218,7 @@ public class AiChatController {
                     """,
             security = @SecurityRequirement(name = "BearerAuth")
     )
-    @ApiResponses({
-            @ApiResponse(
+    @ApiResponse(
                     responseCode = "200",
                     description = "Paginated list of messages returned (newest first). Empty page if the student has no messages yet.",
                     content = @Content(
@@ -255,8 +251,8 @@ public class AiChatController {
                                             """
                             )
                     )
-            ),
-            @ApiResponse(
+            )
+    @ApiResponse(
                     responseCode = "401",
                     description = "No valid Bearer token provided",
                     content = @Content(
@@ -266,8 +262,8 @@ public class AiChatController {
                                     { "status": 401, "error": "Unauthorized", "message": "Full authentication is required" }
                                     """)
                     )
-            ),
-            @ApiResponse(
+            )
+    @ApiResponse(
                     responseCode = "500",
                     description = "Unexpected server error",
                     content = @Content(
@@ -275,7 +271,6 @@ public class AiChatController {
                             schema = @Schema(implementation = ApiError.class)
                     )
             )
-    })
     @GetMapping("/history")
     public ResponseEntity<Page<ChatMessageDto>> getHistory(
             @AuthenticationPrincipal CustomUserDetails principal,

@@ -8,7 +8,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.ExampleObject;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
-import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
@@ -107,8 +106,7 @@ public class BudgetController {
                     Month and year default to the current calendar month when omitted.
                     """
     )
-    @ApiResponses({
-            @ApiResponse(
+    @ApiResponse(
                     responseCode = "200",
                     description = "Budget found or successfully created.",
                     content = @Content(
@@ -164,18 +162,17 @@ public class BudgetController {
                                     )
                             }
                     )
-            ),
-            @ApiResponse(responseCode = "401", description = "No valid Bearer token provided.",
+            )
+    @ApiResponse(responseCode = "401", description = "No valid Bearer token provided.",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
                             examples = @ExampleObject(value = """
                                     {"status":401,"error":"Unauthorized","message":"Full authentication is required","path":"/api/v1/budgets/current","timestamp":"2026-05-16T12:00:00Z"}
-                                    """))),
-            @ApiResponse(responseCode = "400", description = "month or year parameter is out of range.",
+                                    """)))
+    @ApiResponse(responseCode = "400", description = "month or year parameter is out of range.",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
                             examples = @ExampleObject(value = """
                                     {"status":400,"error":"Bad Request","message":"month must be between 1 and 12","path":"/api/v1/budgets/current","timestamp":"2026-05-16T12:00:00Z"}
                                     """)))
-    })
     @GetMapping("/current")
     public ResponseEntity<MonthlyBudgetResponseDto> getCurrentBudget(
             @AuthenticationPrincipal CustomUserDetails userDetails,
@@ -234,8 +231,7 @@ public class BudgetController {
                     transactions have been logged yet today.
                     """
     )
-    @ApiResponses({
-            @ApiResponse(
+    @ApiResponse(
                     responseCode = "200",
                     description = "Today's spend summary returned successfully.",
                     content = @Content(
@@ -272,10 +268,9 @@ public class BudgetController {
                                     )
                             }
                     )
-            ),
-            @ApiResponse(responseCode = "401", description = "No valid Bearer token provided.",
+            )
+    @ApiResponse(responseCode = "401", description = "No valid Bearer token provided.",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class)))
-    })
     @GetMapping("/spend-today")
     public ResponseEntity<SpendTodayResponseDto> getSpendToday(
             @AuthenticationPrincipal CustomUserDetails userDetails
@@ -301,25 +296,23 @@ public class BudgetController {
                     **Ownership required:** the authenticated user must own this budget.
                     """
     )
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Category created or updated successfully. No body returned.", content = @Content),
-            @ApiResponse(responseCode = "400", description = "Request body fails validation (blank name, negative allocation, etc.).",
+    @ApiResponse(responseCode = "204", description = "Category created or updated successfully. No body returned.", content = @Content)
+    @ApiResponse(responseCode = "400", description = "Request body fails validation (blank name, negative allocation, etc.).",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
                             examples = @ExampleObject(value = """
                                     {"status":400,"error":"Bad Request","message":"newAllocation must be 0.00 or greater","path":"/api/v1/budgets/b1e2f3a4-5678-90ab-cdef-000000000001/categories","timestamp":"2026-05-16T12:00:00Z"}
-                                    """))),
-            @ApiResponse(responseCode = "401", description = "No valid Bearer token provided.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "403", description = "Authenticated user does not own this budget.",
+                                    """)))
+    @ApiResponse(responseCode = "401", description = "No valid Bearer token provided.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class)))
+    @ApiResponse(responseCode = "403", description = "Authenticated user does not own this budget.",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
                             examples = @ExampleObject(value = """
                                     {"status":403,"error":"Forbidden","message":"You do not have permission to modify this budget","path":"/api/v1/budgets/b1e2f3a4-5678-90ab-cdef-000000000001/categories","timestamp":"2026-05-16T12:00:00Z"}
-                                    """))),
-            @ApiResponse(responseCode = "404", description = "Budget not found.",
+                                    """)))
+    @ApiResponse(responseCode = "404", description = "Budget not found.",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
                             examples = @ExampleObject(value = """
                                     {"status":404,"error":"Not Found","message":"Budget not found: b1e2f3a4-5678-90ab-cdef-000000000001","path":"/api/v1/budgets/b1e2f3a4-5678-90ab-cdef-000000000001/categories","timestamp":"2026-05-16T12:00:00Z"}
                                     """)))
-    })
     @PutMapping("/{budgetId}/categories")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> adjustCategory(
@@ -374,20 +367,18 @@ public class BudgetController {
                     **Ownership required:** the authenticated user must own this budget.
                     """
     )
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Category deleted successfully. No body returned.", content = @Content),
-            @ApiResponse(responseCode = "401", description = "No valid Bearer token provided.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "403", description = "Authenticated user does not own this budget.",
+    @ApiResponse(responseCode = "204", description = "Category deleted successfully. No body returned.", content = @Content)
+    @ApiResponse(responseCode = "401", description = "No valid Bearer token provided.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class)))
+    @ApiResponse(responseCode = "403", description = "Authenticated user does not own this budget.",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
                             examples = @ExampleObject(value = """
                                     {"status":403,"error":"Forbidden","message":"You do not have permission to modify this budget","path":"/api/v1/budgets/b1e2f3a4-5678-90ab-cdef-000000000001/categories/FOOD","timestamp":"2026-05-16T12:00:00Z"}
-                                    """))),
-            @ApiResponse(responseCode = "404", description = "Budget or category not found.",
+                                    """)))
+    @ApiResponse(responseCode = "404", description = "Budget or category not found.",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
                             examples = @ExampleObject(value = """
                                     {"status":404,"error":"Not Found","message":"Category 'SAVINGS' not found in budget b1e2f3a4-5678-90ab-cdef-000000000001","path":"/api/v1/budgets/b1e2f3a4-5678-90ab-cdef-000000000001/categories/SAVINGS","timestamp":"2026-05-16T12:00:00Z"}
                                     """)))
-    })
     @DeleteMapping("/{budgetId}/categories/{name}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> deleteCategory(
@@ -438,25 +429,23 @@ public class BudgetController {
                     **Ownership required:** the authenticated user must own the target budget.
                     """
     )
-    @ApiResponses({
-            @ApiResponse(responseCode = "204", description = "Transaction logged and category spend updated. No body returned.", content = @Content),
-            @ApiResponse(responseCode = "400", description = "Request body fails validation.",
+    @ApiResponse(responseCode = "204", description = "Transaction logged and category spend updated. No body returned.", content = @Content)
+    @ApiResponse(responseCode = "400", description = "Request body fails validation.",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
                             examples = @ExampleObject(value = """
                                     {"status":400,"error":"Bad Request","message":"amount must be positive","path":"/api/v1/budgets/transactions","timestamp":"2026-05-16T12:00:00Z"}
-                                    """))),
-            @ApiResponse(responseCode = "401", description = "No valid Bearer token provided.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "403", description = "Authenticated user does not own the referenced budget.",
+                                    """)))
+    @ApiResponse(responseCode = "401", description = "No valid Bearer token provided.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class)))
+    @ApiResponse(responseCode = "403", description = "Authenticated user does not own the referenced budget.",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
                             examples = @ExampleObject(value = """
                                     {"status":403,"error":"Forbidden","message":"You do not have permission to modify this budget","path":"/api/v1/budgets/transactions","timestamp":"2026-05-16T12:00:00Z"}
-                                    """))),
-            @ApiResponse(responseCode = "404", description = "Budget or category not found.",
+                                    """)))
+    @ApiResponse(responseCode = "404", description = "Budget or category not found.",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
                             examples = @ExampleObject(value = """
                                     {"status":404,"error":"Not Found","message":"Category 'GYM' not found in budget b1e2f3a4-5678-90ab-cdef-000000000001","path":"/api/v1/budgets/transactions","timestamp":"2026-05-16T12:00:00Z"}
                                     """)))
-    })
     @PostMapping("/transactions")
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public ResponseEntity<Void> logManualTransaction(
@@ -538,8 +527,7 @@ public class BudgetController {
                     **Content-Type:** `multipart/form-data`, field name `file`.
                     """
     )
-    @ApiResponses({
-            @ApiResponse(
+    @ApiResponse(
                     responseCode = "200",
                     description = "File parsed successfully. Returns one entry per debit row found.",
                     content = @Content(
@@ -556,24 +544,23 @@ public class BudgetController {
                                             """
                             )
                     )
-            ),
-            @ApiResponse(responseCode = "400", description = "File is missing, empty, or cannot be parsed.",
+            )
+    @ApiResponse(responseCode = "400", description = "File is missing, empty, or cannot be parsed.",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
                             examples = @ExampleObject(value = """
                                     {"status":400,"error":"Bad Request","message":"Failed to read bank statement: Stream closed","path":"/api/v1/budgets/b1e2f3a4-5678-90ab-cdef-000000000001/upload-statement","timestamp":"2026-05-16T12:00:00Z"}
-                                    """))),
-            @ApiResponse(responseCode = "401", description = "No valid Bearer token provided.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class))),
-            @ApiResponse(responseCode = "403", description = "Authenticated user does not own this budget.",
+                                    """)))
+    @ApiResponse(responseCode = "401", description = "No valid Bearer token provided.", content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class)))
+    @ApiResponse(responseCode = "403", description = "Authenticated user does not own this budget.",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
                             examples = @ExampleObject(value = """
                                     {"status":403,"error":"Forbidden","message":"You do not have permission to modify this budget","path":"/api/v1/budgets/b1e2f3a4-5678-90ab-cdef-000000000001/upload-statement","timestamp":"2026-05-16T12:00:00Z"}
-                                    """))),
-            @ApiResponse(responseCode = "404", description = "Budget not found.",
+                                    """)))
+    @ApiResponse(responseCode = "404", description = "Budget not found.",
                     content = @Content(mediaType = MediaType.APPLICATION_JSON_VALUE, schema = @Schema(implementation = ApiError.class),
                             examples = @ExampleObject(value = """
                                     {"status":404,"error":"Not Found","message":"Budget not found: b1e2f3a4-5678-90ab-cdef-000000000001","path":"/api/v1/budgets/b1e2f3a4-5678-90ab-cdef-000000000001/upload-statement","timestamp":"2026-05-16T12:00:00Z"}
                                     """)))
-    })
     @PostMapping(value = "/{budgetId}/upload-statement", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<List<ParsedTransactionDto>> uploadStatement(
             @Parameter(
